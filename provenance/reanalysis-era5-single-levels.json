@@ -1,0 +1,10 @@
+{
+"uas": {
+            "var_name": "u10",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521"
+        },
+"vas": {
+            "var_name": "v10",
+            "provenance":"https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521"
+        }
+}

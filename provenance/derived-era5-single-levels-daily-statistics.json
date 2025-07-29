@@ -1,0 +1,50 @@
+{
+"tas": {
+            "var_name": "t2m",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521",
+        },
+"tasmax": {
+            "var_name": "t2mx",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521",
+        },
+"tasmin": {
+            "var_name": "t2mn",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521",
+        },
+
+"uas": {
+            "var_name": "u10",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521"
+        },
+"vas": {
+            "var_name": "v10",
+            "provenance":"https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521"
+        },
+"pr": {
+            "var_name": "tp",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521",
+            "cell_methods": "area: time: sum within days" 
+        },
+"psl": {
+            "var_name": "sp",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521"
+        },
+"evspsbl": {
+            "var_name": "e",
+            "provenance": "missing",
+            "cell_methods": "area: time: sum within days", 
+            "units":"m of water equivalent"
+        },
+"rsds": {
+            "var_name": "ssrd",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521",
+            "units":"J.m.-2",
+            "cell_methods": "area: time: sum within days", 
+
+            },
+"dewpoint": {
+            "var_name": "d2m",
+            "provenance": "missing",
+            "units":"K"
+        }
+    }
