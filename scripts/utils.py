@@ -63,3 +63,40 @@ def download_file(catalogue_id: str, catalogue_entry: dict, output_path: Path) -
 
 
 
+def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func):
+    """
+    Download files for the specified variables and years.
+
+    Parameters
+    ----------
+    dataset : str
+        The dataset name.
+    variables_file_path : str
+        Path to the CSV file containing the variables and other parameters.
+    create_request_func : function
+        Function to create the request dictionary.
+    get_output_filename_func : function
+        Function to get the output filename.
+    """
+    df_parameters = pd.read_csv(variables_file_path)
+    for index, row in df_parameters.iterrows():
+        dest_dir = Path(row["path_download"]) / dataset / row["filename_variable"]
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        year_list = list(range(row["years_start"], row["years_end"] + 1))
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = []
+            for year in year_list:
+                request = create_request_func(row, year)
+                file = get_output_filename_func(row, dataset, year)
+                path_file = dest_dir / file
+                if path_file.exists():
+                    logging.info(f"{path_file} already exists, skipping")
+                    continue
+                futures.append(executor.submit(download_file, dataset, request, path_file))
+
+            for future in futures:
+                try:
+                    future.result()
+                except Exception as e:
+                    logging.error(f"Failed to download file: {e}")

@@ -1,4 +1,4 @@
-from utils import download_file
+from utils import download_files
 from pathlib import Path
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -49,40 +49,9 @@ def create_request(row,year):
     }
 
 def main():
-    """
-    Download  files for the specified variables and years.
-    Parameters
-    ----------
-    row : pd.Series
-       A row from the configuration file.
-    dataset : str
-        The dataset name.
-   
-    """
-    dataset="derived-era5-single-levels-daily-statistics"
+    dataset = "derived-era5-single-levels-daily-statistics"
     variables_file_path = f"../requests/{dataset}.csv"
-    df_parameters = pd.read_csv(variables_file_path)
-
-    for index, row in df_parameters.iterrows(): 
-        dest_dir = Path(row["path_download"])/ dataset / row["filename_variable"]
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        year_list = list(range(row["years_start"], row["years_end"]+1))
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = []
-            for year in year_list:
-                request = create_request(row,year)
-                file = get_output_filename(row, dataset, year)
-                path_file = dest_dir / file
-                if path_file.exists():
-                    logging.info(f"{path_file} already exists, skipping")
-                    continue
-                futures.append(executor.submit(download_file, dataset, request, path_file))
-
-            for future in futures:
-                try:
-                    future.result()
-                except Exception as e:
-                    logging.error(f"Failed to download file: {e}")
+    download_files(dataset, variables_file_path, create_request, get_output_filename)
 
 if __name__ == "__main__":
     main()
