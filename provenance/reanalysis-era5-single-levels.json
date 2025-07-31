@@ -1,10 +1,19 @@
 {
 "uas": {
             "var_name": "u10",
-            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521"
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json",
+            "frequency": "hourly",
+            "type_product": "raw"
         },
 "vas": {
             "var_name": "v10",
-            "provenance":"https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json#L521"
+            "provenance":"https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json",
+            "frequency": "hourly",
+            "type_product": "raw"
+        },
+"sfcwind": {
+           "var_name": "sfcwind",
+            "provenance":"https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json",
+            "type_product": "derived"
         }
 }

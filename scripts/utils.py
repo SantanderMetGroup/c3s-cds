@@ -27,7 +27,7 @@ def read_from_yaml(file_path):
         variables = yaml.safe_load(file)
     return variables
 
-def download_file(catalogue_id: str, catalogue_entry: dict, output_path: Path) -> Path:
+def download_single_file(catalogue_id: str, catalogue_entry: dict, output_path: Path) -> Path:
     """
     Download a file from a given catalogue ID with the given parameters.
     This method retrieves the file from the CDS API, saves it in a temporary
@@ -57,6 +57,7 @@ def download_file(catalogue_id: str, catalogue_entry: dict, output_path: Path) -
     end_time = datetime.datetime.now()
     final_time = end_time - start_time
     logging.info(f"Duration of the process to download data: {final_time}")
+    logging.info(f"Saving to {output_path}")
     return output_path
 
 
@@ -93,7 +94,7 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                 if path_file.exists():
                     logging.info(f"{path_file} already exists, skipping")
                     continue
-                futures.append(executor.submit(download_file, dataset, request, path_file))
+                futures.append(executor.submit(download_single_file, dataset, request, path_file))
 
             for future in futures:
                 try:
