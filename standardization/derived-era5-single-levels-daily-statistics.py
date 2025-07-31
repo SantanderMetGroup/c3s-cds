@@ -2,9 +2,8 @@ def tp(ds, var)
     """
     Convert daily accumulated precipitation (mm/day) to precipitation flux (kg/m²/s) and update the attributes accordingly.
     """
-    for var in ds.data_vars:
-    	if var in ds.var:
-    	    ds[var] = ds[var] - 273.15
+    for data_var in ds.data_vars:
+    	if var == data_var:
             ds[var].attrs['standard_name'] = "precipitation_flux"
             ds[var].attrs['units'] = "kg m-2 s-1"
             ds[var].attrs['cell_methods'] = "area: time: mean"
