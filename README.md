@@ -9,6 +9,7 @@ This repository contains scripts to download, preprocess, standardize, and conso
 |  [scripts](https://github.com/SantanderMetGroup/c3s-cds/tree/main/scripts) | 	Python scripts to download data from the CDS.
 | [provenance](https://github.com/SantanderMetGroup/c3s-cds/tree/main/provenance) | Contains one JSON file per catalogue describing the provenance and definitions of each variable.
 | [standardization](https://github.com/SantanderMetGroup/c3s-cds/tree/main/standardization) |  Python recipes to standardize the variables.
+| [derived](https://github.com/SantanderMetGroup/c3s-cds/tree/main/derived) |  Python recipes to calculate derived products from the variables.
 | [catalogues](https://github.com/SantanderMetGroup/c3s-cds/tree/main/catalogues) |  	CSV catalogues of datasets consolidated in Lustre or GPFS. The catalogues are updated through a nightly CI job.
 
 
