@@ -1,4 +1,4 @@
-dataset,filename_variable,request_variable,daily_statistic,years_start,years_end,product_type,time_zone,frequency,month,day,path_download,script,product_type
+dataset,filename_variable,cds_request_variable,cds_daily_statistic,cds_years_start,cds_years_end,cds_product_type,cds_time_zone,cds_frequency,cds_month,cds_day,path_download,script,product_type
 derived-era5-single-levels-daily-statistics,t2m,2m_temperature,daily_mean,1940,2024,reanalysis,utc+00:00,6_hourly,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,derived-era5-single-levels-daily-statistics.py,raw
 derived-era5-single-levels-daily-statistics,t2mx,2m_temperature,daily_maximum,1940,2024,reanalysis,utc+00:00,1_hourly,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,derived-era5-single-levels-daily-statistics.py,raw
 derived-era5-single-levels-daily-statistics,t2mn,2m_temperature,daily_minimum,1940,2024,reanalysis,utc+00:00,1_hourly,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,derived-era5-single-levels-daily-statistics.py,raw

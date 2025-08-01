@@ -1,4 +1,5 @@
-dataset,filename_variable,request_variable,years_start,years_end,product_type,data_format,download_format,month,day,path_download,script,product_type
-reanalysis-era5-single-levels,u10,10m_u_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,derived-era5-single-levels-daily-statistics.py,raw
-reanalysis-era5-single-levels,v10,10m_v_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,derived-era5-single-levels-daily-statistics.py,raw
+dataset,filename_variable,cds_request_variable,cds_years_start,cds_years_end,cds_product_type,cds_data_format,cds_download_format,cds_month,day,path_download,script,product_type
+reanalysis-era5-single-levels,u10,10m_u_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,reanalysis-era5-single-levels.py,raw
+reanalysis-era5-single-levels,v10,10m_v_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,reanalysis-era5-single-levels.py,raw
+reanalysis-era5-single-levels,sfcwind,None,2022,2024,None,None,None,None,None,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/derived/,reanalysis-era5-single-levels.py,derived
 

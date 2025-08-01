@@ -83,7 +83,7 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
     for index, row in df_parameters.iterrows():
         dest_dir = Path(row["path_download"]) / dataset / row["filename_variable"]
         dest_dir.mkdir(parents=True, exist_ok=True)
-        year_list = list(range(row["years_start"], row["years_end"] + 1))
+        year_list = list(range(row["cds_years_start"], row["cds_years_end"] + 1))
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = []

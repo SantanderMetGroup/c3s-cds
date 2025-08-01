@@ -10,13 +10,13 @@ def get_output_filename(row,dataset,year):
     return f"{var}-{dataset}-{date}.nc"
 
 def create_request(row,year):
-    var=row["request_variable"]
-    daily_statistic=row["daily_statistic"]
-    day=row["day"]
-    month=row["month"]
-    time_zone=row["time_zone"]
-    frequency=row["frequency"]
-    product_type=row["product_type"]
+    var=row["cds_request_variable"]
+    daily_statistic=row["cds_daily_statistic"]
+    day=row["cds_day"]
+    month=row["cds_month"]
+    time_zone=row["cds_time_zone"]
+    frequency=row["cds_frequency"]
+    product_type=row["cds_product_type"]
     
     if day == "all":
         day = [

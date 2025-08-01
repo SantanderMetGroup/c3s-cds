@@ -3,12 +3,12 @@ from utils import download_files
 
 
 def create_request(row,year):
-    var=row["request_variable"]
-    day=row["day"]
-    month=row["month"]
-    data_format=row["data_format"]
-    product_type=row["product_type"]
-    download_format=row["download_format"]
+    var=row["cds_request_variable"]
+    day=row["cds_day"]
+    month=row["cds_month"]
+    data_format=row["cds_data_format"]
+    product_type=row["cds_product_type"]
+    download_format=row["cds_download_format"]
 
     time= [
         "00:00", "01:00", "02:00",
