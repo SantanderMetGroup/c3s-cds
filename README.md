@@ -1,5 +1,5 @@
 # c3s-cds
-This repository contains scripts to download, preprocess, standarcitete, and consolidate the catalogs available in the CDS.
+This repository contains scripts to download, preprocess, standardize, and consolidate the catalogues available in the CDS.
 
 ## Contents
 
