@@ -13,7 +13,7 @@ def tp_mm(ds, var):
     return ds
 
 
-def tp_m(ds, var):
+def tp(ds, var):
     """
     Convert daily accumulated precipitation (m of water equivalent/day) to precipitation flux (kg/m²/s) and update the attributes accordingly.
     """
@@ -29,9 +29,9 @@ def tp_m(ds, var):
 
 
 
-def e_m(ds, var):
+def e(ds, var):
     """
-    Convert daily accumulated evaporation (mm/day) to evaporation flux (kg/m²/s) and update the attributes accordingly.
+    Convert daily accumulated evaporation (m of water equivalent/day) to evaporation flux (kg/m²/s) and update the attributes accordingly.
     """
     for data_var in ds.data_vars:
     	if var == data_var:
