@@ -64,7 +64,7 @@ def download_single_file(catalogue_id: str, catalogue_entry: dict, output_path: 
 
 
 
-def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func):
+def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func,montlhy_request=False):
     """
     Download files for the specified variables and years.
 
@@ -87,14 +87,26 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             futures = []
-            for year in year_list:
-                request = create_request_func(row, year)
-                file = get_output_filename_func(row, dataset, year)
-                path_file = dest_dir / file
-                if path_file.exists():
-                    logging.info(f"{path_file} already exists, skipping")
-                    continue
-                futures.append(executor.submit(download_single_file, dataset, request, path_file))
+            if montlhy_request:
+                month_list = [f"{month:02d}" for month in range(1, 13)]
+                for year in year_list:
+                    for month in  month_list:
+                        request = create_request_func(row, year,month)
+                        file = get_output_filename_func(row, dataset, year,month)
+                        path_file = dest_dir / file
+                        if path_file.exists():
+                            logging.info(f"{path_file} already exists, skipping")
+                            continue
+                        futures.append(executor.submit(download_single_file, dataset, request, path_file))
+            else:
+                for year in year_list:
+                    request = create_request_func(row, year)
+                    file = get_output_filename_func(row, dataset, year)
+                    path_file = dest_dir / file
+                    if path_file.exists():
+                        logging.info(f"{path_file} already exists, skipping")
+                        continue
+                    futures.append(executor.submit(download_single_file, dataset, request, path_file))
 
             for future in futures:
                 try:

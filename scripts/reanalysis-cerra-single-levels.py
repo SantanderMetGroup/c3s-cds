@@ -33,10 +33,10 @@ def load_times(row):
 
 
 
-def create_request(row,year,month=all):
+def create_request(row,year,month="all"):
     var=row["cds_request_variable"]
     day=row["cds_day"]
-    month=row["cds_month"]
+
     data_format=row["cds_data_format"]
     product_type=row["cds_product_type"]
     data_type=row["cds_data_type"]
@@ -60,6 +60,8 @@ def create_request(row,year,month=all):
             "07", "08", "09",
             "10", "11", "12"
         ]
+    else:
+        month=[month]
     dict_request={
         "variable": [var],
         "product_type": [product_type],
@@ -75,16 +77,15 @@ def create_request(row,year,month=all):
     if leadtime_hour=="None":
         del dict_request["leadtime_hour"]
     return dict_request
-def get_output_filename(row,dataset,year):
-    product_type=row["product_type"]
+def get_output_filename(row,dataset,year,month):
     var=row["filename_variable"]
-    date=f"{year}-01-01_{year}-12-31"
-    return f"{var}_{dataset}_{product_type}_{date}.nc"
+    date=f"{year}{month}"
+    return f"{var}_{dataset}_{date}.nc"
 
 def main():
     dataset="reanalysis-cerra-single-levels"
     variables_file_path = f"../requests/{dataset}.csv"
-    download_files(dataset, variables_file_path, create_request, get_output_filename)
+    download_files(dataset, variables_file_path, create_request, get_output_filename,montlhy_request=True)
 
 if __name__ == "__main__":
     main()

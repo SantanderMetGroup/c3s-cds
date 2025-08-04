@@ -6,7 +6,7 @@ from utils import download_files
 def get_output_filename(row,dataset,year):
 
     var=row["filename_variable"]
-    date=f"{year}-01-01_{year}-12-31"
+    date=f"{year}"
     return f"{var}_{dataset}_{date}.nc"
 
 def create_request(row,year):
