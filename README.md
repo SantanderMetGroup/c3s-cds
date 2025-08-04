@@ -1,6 +1,8 @@
 # c3s-cds
 This repository contains scripts to download, preprocess, standardize, and consolidate the catalogues available in the CDS.
-
+##Filename format:
+Format of the files is {var}_{dataset}_{date}.nc
+With date: "{year}{month}" for big datasets like CERRA saved  month by month "{year}" for datasets saved year by year. 
 ## Contents
 
 | Directory | Contents |
