@@ -31,12 +31,13 @@ def main():
                 ds_v = xr.open_dataset(v_10_file)
                 ds_merge = xr.merge([ds_u, ds_v])
                 sfcwind = operations.sfcwind_from_u_v(ds_merge)
-                sfcwind_daily = operations.resample_to_daily(sfcwind)
+                sfcwind_daily = operations.resample_to_daily(sfcwind,"valid_time")
                 dest_dir = operations.load_path_from_df(df_parameters, 'sfcwind')
+                dest_dir = dest_dir+f"/{dataset}/sfcwind"
                 os.makedirs(dest_dir, exist_ok=True)
                 sfcwind_file = os.path.basename(u_10_file).replace("u10", "sfcwind")
                 logging.info(f"Saving calculated sfcwind to {dest_dir}")     
-                #sfcwind_daily.to_netcdf(f"{u10_download_path}/{dataset}/sfcwind/{sfcwind_file}")
+                sfcwind_daily.to_netcdf(f"{dest_dir}/{sfcwind_file}")
 
 if __name__ == "__main__":
     main()
