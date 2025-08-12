@@ -1,0 +1,14 @@
+{
+"hurs": {
+            "var_name": "r2",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json",
+            "frequency": "hourly",
+            "type_product": "raw"
+        },
+"tas": {
+            "var_name": "t2m",
+            "provenance": "https://github.com/PCMDI/cmip6-cmor-tables/blob/main/Tables/CMIP6_day.json",
+            "frequency": "hourly",
+            "type_product": "raw"
+        }
+}

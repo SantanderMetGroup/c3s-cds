@@ -1,3 +1,6 @@
-dataset,filename_variable,cds_request_variable,cds_years_start,cds_years_end,cds_time,cds_leadtime_hour,cds_level_type,cds_product_type,cds_data_type,cds_data_format,cds_month,cds_day,path_download,script,product_type
-reanalysis-cerra-single-levels,t2m,2m_temperature,1988,2017,3Hourly,all,surface_or_atmosphere,forecast,reanalysis,netcdf,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,reanalysis-cerra-single-levels.py,raw
-reanalysis-cerra-single-levels,r2,2m_relative_humidity,1988,2017,3Hourly,all,surface_or_atmosphere,forecast,reanalysis,netcdf,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,reanalysis-cerra-single-levels.py,raw
+dataset,filename_variable,cds_request_variable,cds_years_start,cds_years_end,cds_time,cds_leadtime_hour,cds_level_type,cds_product_type,cds_data_type,cds_data_format,cds_month,cds_day,path_download,script,product_type,interpolation
+reanalysis-cerra-single-levels,t2m,2m_temperature,1988,2017,3Hourly,all,surface_or_atmosphere,forecast,reanalysis,netcdf,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,scripts/reanalysis-cerra-single-levels.py,raw,None
+reanalysis-cerra-single-levels,r2,2m_relative_humidity,1988,2017,3Hourly,all,surface_or_atmosphere,forecast,reanalysis,netcdf,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/,scripts/reanalysis-cerra-single-levels.py,raw,None
+reanalysis-cerra-single-levels,t2m,2m_temperature,1988,2017,3Hourly,all,surface_or_atmosphere,forecast,reanalysis,netcdf,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/interpolated/,interpolation/reanalysis-cerra-single-levels.py,interpolated,land_sea_mask_0.0625degree.nc4
+reanalysis-cerra-single-levels,r2,2m_relative_humidity,1988,2017,3Hourly,all,surface_or_atmosphere,forecast,reanalysis,netcdf,all,all,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/interpolated/,interpolation/reanalysis-cerra-single-levels.py,interpolated,land_sea_mask_0.0625degree.nc4
+

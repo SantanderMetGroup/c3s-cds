@@ -192,39 +192,30 @@ def process_csv_file(file_path):
     plot2(df_final,varss, project,scess,list_values=list(load_values_dict().keys()))
     # Print the DataFrame
 
+def main():
+    #1-Process the request csv files
+    csv_directory = '../requests'
+    for filename in os.listdir(csv_directory):
+        if filename.endswith('.csv'):
+            file_path = os.path.join(csv_directory, filename)
+            process_csv_file(file_path)
 
-# Directory containing CSV files
-csv_directory = '../requests'
+    #2-Concatenate all the auxiliary csv files
+    current_folder = os.getcwd()
+    dataframes = []
+    for filename in os.listdir(current_folder):
+        if filename.endswith('.csv'):
+            if filename == "all_catalogues.csv":
+                continue
+            file_path = os.path.join(current_folder, filename)
+            df = pd.read_csv(file_path, index_col=None)
+            dataframes.append(df)
 
-# Loop through each file in the directory
-for filename in os.listdir(csv_directory):
-    if filename.endswith('.csv'):
-        file_path = os.path.join(csv_directory, filename)
-        process_csv_file(file_path)
+    #3-Final catalogue
+    if dataframes:
+        concatenated_df = pd.concat(dataframes, ignore_index=True)
+        print("Concatenated DataFrame:")
 
-
-# Get the current working directory
-current_folder = os.getcwd()
-
-# List to store DataFrames
-dataframes = []
-
-# Loop through all files in the current directory
-for filename in os.listdir(current_folder):
-    # Check if the file is a CSV file
-    if filename.endswith('.csv'):
-        if filename == "all_catalogues.csv":
-            continue
-        # Construct the full file path
-        file_path = os.path.join(current_folder, filename)
-        # Read the CSV file into a DataFrame
-        df = pd.read_csv(file_path, index_col=None)
-        # Append the DataFrame to the list
-        dataframes.append(df)
-
-# Concatenate all DataFrames into a single DataFrame
-if dataframes:
-    concatenated_df = pd.concat(dataframes, ignore_index=True)
-    print("Concatenated DataFrame:")
-
-    concatenated_df.to_csv("all_catalogues.csv")
+        concatenated_df.to_csv("all_catalogues.csv")
+if __name__ == "__main__":
+    main()
