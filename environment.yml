@@ -1,0 +1,30 @@
+name: c3s-atlas
+channels:
+  - conda-forge
+dependencies:
+  - cartopy
+  - cf_xarray
+  - cftime
+  - dask
+  - geopandas
+  - hdf5
+  - jupyterlab
+  - matplotlib
+  - netcdf4
+  - numpy
+  - pandas
+  - pip
+  - python
+  - scikit-learn
+  - scipy
+  - shapely
+  - xclim
+  - xesmf
+  - yaml
+  - regionmask
+  - pip:
+      - cads-api-client
+      - cdsapi
+      - ibicus
+      - seaborn
+      - tqdm
