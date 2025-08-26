@@ -36,7 +36,7 @@ def main():
     for index, row in df_parameters.iterrows():
         ds_variable=row["filename_variable"]
         orig_dir = f"{row['path_download']}/{dataset}/{ds_variable}/"
-        output=f"/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/interpolated/{dataset}/{ds_variable}/"
+        output=f"/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/{dataset}/{ds_variable}/"
         os.makedirs(output, exist_ok=True) 
         pattern="*.nc"
         paths=np.sort(glob.glob(orig_dir+pattern))
