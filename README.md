@@ -1,7 +1,7 @@
 # c3s-cds
 This repository contains scripts to download, preprocess, standardize, and consolidate the catalogues available in the CDS.
 ## Environment:
-The environment is the one used in the atlas user tools: https://github.com/ecmwf-projects/c3s-atlas/blob/main/environment.yml
+The environment is the one used in the c3s-atlas user tools: https://github.com/ecmwf-projects/c3s-atlas/blob/main/environment.yml
 ## Filename format:
 Format of the files is "{var}\_{dataset}\_{date}.nc"
 With date: 
