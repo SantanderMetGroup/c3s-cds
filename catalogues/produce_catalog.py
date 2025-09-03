@@ -119,37 +119,56 @@ def get_earliest_and_latest_dates(directory):
         return None, None  # Return None if no valid dates are found
 
     # Determine the earliest and latest dates
-    earliest_year = min(dates)
-    latest_year = max(dates)
+    earliest_year = int(min(dates))
+    latest_year = int(max(dates))
 
     return earliest_year, latest_year
 
 def create_auxiliar_df(data):
-    # Create a list to store rows for the DataFrame
     rows = []
-
-    # Process each row in the CSV file
     for _, row in data.iterrows():
-        path = os.path.join(row['path_download'], row['dataset'], row['filename_variable'])
+        data_path = os.path.join(row['output_path'], row['dataset'], row['filename_variable'])
+        if row['input_path']=="CDS":
+            origin_path="CDS"
+        else:
+            origin_path = os.path.join(row['input_path'], row['dataset'], row['filename_variable'])
 
-        # Check for each year separately
-        start_year_exists = check_nc_file_for_year(path, row['cds_years_start'])
-        end_year_exists = check_nc_file_for_year(path, row['cds_years_end'])
-        earliest_dates, latest_dates = get_earliest_and_latest_dates(path)
-        rows.append({
-                'variable': row['filename_variable'],
-                'dataset': row['dataset'],
-                'product_type': row['product_type'],
-                'path': path,
-                f'start_file_exists': start_year_exists,
-                f'final_file_exists': end_year_exists,
-                'earliest_date': earliest_dates,
-                'latest_date': latest_dates
-            })
+        start_year_exists = check_nc_file_for_year(data_path, row['cds_years_start'])
+        end_year_exists = check_nc_file_for_year(data_path, row['cds_years_end'])
+        earliest_dates, latest_dates = get_earliest_and_latest_dates(data_path)
 
-    # Create a DataFrame from the list of rows
-    df = pd.DataFrame(rows)
-    return df
+        # Initialize the row with the desired column order
+        new_row = {
+            'variable': row['filename_variable'],
+            'model': 'None',  # Default value
+            'experiment': 'None',  # Default value
+            'dataset': row['dataset'],
+            'dataset_type': row['dataset_type'],
+            'product_type': row['product_type'],
+            'interpolation': row['interpolation'],
+            'data_path': data_path,
+            'origin_path': origin_path,
+            'start_file_exists': start_year_exists,
+            'final_file_exists': end_year_exists,
+            'earliest_date': earliest_dates,
+            'latest_date': latest_dates,
+        }
+
+        # Update model and experiment if dataset_type is 'projections'
+        if row['dataset_type'] in ['projections']:
+            new_row['model'] = row['model']
+            new_row['experiment'] = row['experiment']
+
+        rows.append(new_row)
+
+    # Create DataFrame with the desired column order
+    df = pd.DataFrame(rows, columns=[
+        'variable', 'model', 'experiment', 'dataset', 'dataset_type',
+        'product_type', 'interpolation', 'data_path', 'origin_path',
+        'start_file_exists', 'final_file_exists', 'earliest_date', 'latest_date'
+    ])
+
+    return df, row['dataset_type']
 
 def load_values_dict():
     # Create a dictionary to store the values
@@ -159,27 +178,32 @@ def load_values_dict():
     values_dict["partial"]=1
     return values_dict
 
-def process_csv_file(file_path):
+def process_csv_file(file_path,type_data):
     # Read the CSV file
     data = pd.read_csv(file_path)
-    aux_df=create_auxiliar_df(data)
+    data  = data [data ['product_type'] == type_data]
+    if data.empty:
+        return
+    aux_df,dataset_type=create_auxiliar_df(data)
     print(aux_df)
     project = os.path.basename(file_path).split('.')[0]
 
-    if 'experiment' not in aux_df.columns:
+    if dataset_type in ["reanalysis"]:
+        simss = [project]
         scess=["historical"]
     else:
         scess = aux_df['experiment'].unique()
     varss = aux_df["variable"].unique()
-    if 'model' not in aux_df.columns:
-        simss = [project]
+
+        
+    # Create a DataFrame with MultiIndex columns for each
     # Create a DataFrame with MultiIndex columns for each
     columns = pd.MultiIndex.from_tuples([(var, sce) for var in varss for sce in scess])
     df_final = pd.DataFrame(index=simss, columns=columns)
 
     for ind in df_final.index:
         for col in df_final.columns:
-                if 'experiment' not in aux_df.columns:
+                if dataset_type in ["reanalysis"]:
                     if aux_df.loc[aux_df['variable'] == col[0]]['start_file_exists'].squeeze() == True and aux_df.loc[aux_df['variable'] == col[0]]['final_file_exists'].squeeze() == True:
                             value=0
                     elif aux_df.loc[aux_df['variable'] == col[0]]['earliest_date'].squeeze() is not None:
@@ -187,18 +211,23 @@ def process_csv_file(file_path):
                     else:
                         value=2
 
-                df_final.loc[ind][col] = value
-    aux_df.to_csv(f"{project}_catalogue.csv", index=False)
+                df_final.loc[ind, col] = value
+    print(df_final)
+
+    aux_df.to_csv(f"{project}_{type_data}_catalogue.csv", index=False)
     plot2(df_final,varss, project,scess,list_values=list(load_values_dict().keys()))
-    # Print the DataFrame
+
 
 def main():
+    type_data_list=["raw","interpolated","derived"]
+    
     #1-Process the request csv files
     csv_directory = '../requests'
-    for filename in os.listdir(csv_directory):
-        if filename.endswith('.csv'):
-            file_path = os.path.join(csv_directory, filename)
-            process_csv_file(file_path)
+    for type_data in type_data_list:
+        for filename in os.listdir(csv_directory):
+            if filename.endswith('.csv'):
+                file_path = os.path.join(csv_directory, filename)
+                process_csv_file(file_path,type_data)
 
     #2-Concatenate all the auxiliary csv files
     current_folder = os.getcwd()
@@ -209,6 +238,8 @@ def main():
                 continue
             file_path = os.path.join(current_folder, filename)
             df = pd.read_csv(file_path, index_col=None)
+            df['earliest_date'] = pd.to_numeric(df['earliest_date'], errors='coerce').astype('Int64')
+            df['latest_date'] = pd.to_numeric(df['latest_date'], errors='coerce').astype('Int64')
             dataframes.append(df)
 
     #3-Final catalogue
