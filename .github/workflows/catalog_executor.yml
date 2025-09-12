@@ -1,0 +1,45 @@
+name: Creador catálogos
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-activate-base: false
+          activate-environment: env-catalogues
+          python-version: 3.10
+          environment-file: environment.yml
+          auto-update-conda: true
+      
+      - name: Run script
+        shell: bash -l {0}
+        run: |
+          # Lanza el script en un nodo con 8GB de RAM usando srun
+          srun --mem=8G --cpus-per-task=1 --time=01:00:00 bash -c "
+            module load anaconda/3
+            conda activate env-catalogues
+            python catalogues/produce_catalog.py
+          "
+
+      - name: Commit and push changes
+        shell: bash -l {0}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Auto-update catalogues [skip ci]" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
