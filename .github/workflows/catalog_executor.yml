@@ -17,6 +17,7 @@ jobs:
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
+          miniconda-version: "latest"  # o miniforge-version: "latest" si prefieres Miniforge
           auto-activate-base: false
           activate-environment: env-catalogues
           python-version: 3.10
