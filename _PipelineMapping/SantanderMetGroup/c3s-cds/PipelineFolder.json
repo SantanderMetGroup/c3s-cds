@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "SantanderMetGroup/c3s-cds",
+  "pipelineDirectory": "c3s-cds",
+  "workspaceDirectory": "c3s-cds/c3s-cds",
+  "repositories": {
+    "SantanderMetGroup/c3s-cds": {
+      "repositoryPath": "c3s-cds/c3s-cds",
+      "lastRunOn": "09/16/2025 13:01:55 +02:00"
+    }
+  },
+  "lastRunOn": "09/16/2025 13:57:23 +02:00"
+}
