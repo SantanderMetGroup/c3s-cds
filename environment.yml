@@ -2,6 +2,7 @@ name: c3s-atlas
 channels:
   - conda-forge
 dependencies:
+  - python=3.10
   - cartopy
   - cf_xarray
   - cftime

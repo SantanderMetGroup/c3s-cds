@@ -14,25 +14,27 @@ jobs:
         with:
           persist-credentials: false
       
-      - name: Set up Conda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          miniconda-version: "latest"  # o miniforge-version: "latest" si prefieres Miniforge
-          auto-activate-base: false
-          activate-environment: env-catalogues
-          python-version: 3.10
-          environment-file: environment.yml
-          auto-update-conda: true
+      # - name: Run SLURM
+      #   #uses: conda-incubator/setup-miniconda@v2
+      #   with:
+      #     miniconda-version: "latest"  # o miniforge-version: "latest" si prefieres Miniforge
+      #     auto-activate-base: false
+      #     activate-environment: env-catalogues
+      #     python-version: 3.10
+      #     environment-file: environment.yml
+      #     auto-update-conda: true
       
       - name: Run script
         shell: bash -l {0}
         run: |
-          # Lanza el script en un nodo con 8GB de RAM usando srun
-          srun --mem=8G --cpus-per-task=1 --time=01:00:00 bash -c "
-            module load anaconda/3
-            conda activate env-catalogues
-            python catalogues/produce_catalog.py
-          "
+          JOB_ID=$(sbatch --parsible catalogues/catalog_executor.job | awk '{print $4}')
+          echo "Job ID: $JOB_ID"
+          echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
+          echo "Esperando a que termine el job $JOB_ID..."
+          while squeue -j $JOB_ID | grep -q $JOB_ID; do
+            sleep 10
+          done
+          echo "Job $JOB_ID terminado."
 
       - name: Commit and push changes
         shell: bash -l {0}
