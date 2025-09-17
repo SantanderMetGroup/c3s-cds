@@ -228,3 +228,6 @@ catalogues/*.csv
 # Incluir todos los PDF (por defecto git los sube)
 !catalogues/*.pdf
 !catalogues/*.png
+
+
+slurm*
