@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/produce_catalog.py", line 252, in <module>
+    main()
+  File "/lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/produce_catalog.py", line 227, in main
+    for filename in os.listdir(csv_directory):
+FileNotFoundError: [Errno 2] No such file or directory: '../requests'
