@@ -1,7 +1,0 @@
-name: empty-channels-environment
-
-channels:
-
-dependencies:
-  - black
-  - anaconda-client
