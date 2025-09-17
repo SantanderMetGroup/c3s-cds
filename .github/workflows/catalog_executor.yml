@@ -27,6 +27,7 @@ jobs:
             sleep 10
           done
           echo "Job $JOB_ID terminado."
+          sleep 10
 
       - name: Set up git auth
         run: |
