@@ -226,4 +226,5 @@ catalogues/*.csv
 !catalogues/all_catalogues.csv
 
 # Incluir todos los PDF (por defecto git los sube)
-#!catalogues/*.pdf
+!catalogues/*.pdf
+!catalogues/*.png
