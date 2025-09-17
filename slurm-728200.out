@@ -1,0 +1,63 @@
+  variable model experiment  ... final_file_exists earliest_date latest_date
+0      u10  None       None  ...              True          2022        2024
+1      v10  None       None  ...              True          2022        2024
+
+[2 rows x 13 columns]
+                                     u10        v10
+                              historical historical
+reanalysis-era5-single-levels          0          0
+['downloaded']
+  variable model experiment  ... final_file_exists earliest_date latest_date
+0       tp  None       None  ...              True        198408      202106
+
+[1 rows x 13 columns]
+                              tp
+                      historical
+reanalysis-cerra-land          0
+['downloaded']
+  variable model experiment  ... final_file_exists earliest_date latest_date
+0      t2m  None       None  ...              True        198801      201712
+1       r2  None       None  ...              True        198801      201712
+
+[2 rows x 13 columns]
+                                      t2m         r2
+                               historical historical
+reanalysis-cerra-single-levels          0          0
+['downloaded']
+  variable model experiment  ... final_file_exists earliest_date latest_date
+0      t2m  None       None  ...              True          1940        2024
+1     t2mx  None       None  ...              True          1940        2024
+2     t2mn  None       None  ...              True          1940        2024
+3        e  None       None  ...              True          1940        2024
+4       tp  None       None  ...              True          1940        2024
+5      d2m  None       None  ...              True          1940        2024
+6       sp  None       None  ...              True          2022        2024
+7     ssrd  None       None  ...              True          2022        2024
+8      u10  None       None  ...              True          2022        2024
+9      v10  None       None  ...              True          2022        2024
+
+[10 rows x 13 columns]
+                                                   t2m  ...        v10
+                                            historical  ... historical
+derived-era5-single-levels-daily-statistics          0  ...          1
+
+[1 rows x 10 columns]
+['downloaded', 'partial']
+  variable model experiment  ... final_file_exists earliest_date latest_date
+0      t2m  None       None  ...              True        198801      201712
+1       r2  None       None  ...              True        198801      201712
+
+[2 rows x 13 columns]
+                                      t2m         r2
+                               historical historical
+reanalysis-cerra-single-levels          0          0
+['downloaded']
+  variable model experiment  ... final_file_exists earliest_date latest_date
+0  sfcwind  None       None  ...              True          2022        2024
+
+[1 rows x 13 columns]
+                                 sfcwind
+                              historical
+reanalysis-era5-single-levels          0
+['downloaded']
+Concatenated DataFrame:
