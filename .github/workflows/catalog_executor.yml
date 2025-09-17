@@ -14,17 +14,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           persist-credentials: false
-      
-      # - name: Run SLURM
-      #   #uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     miniconda-version: "latest"  # o miniforge-version: "latest" si prefieres Miniforge
-      #     auto-activate-base: false
-      #     activate-environment: env-catalogues
-      #     python-version: 3.10
-      #     environment-file: environment.yml
-      #     auto-update-conda: true
-      
+          
       - name: Run script
         shell: bash -l {0}
         run: |
