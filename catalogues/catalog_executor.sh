@@ -7,5 +7,5 @@
 
 source ~/.bashrc
 mamba activate c3s-atlas
-
-python /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/produce_catalog.py
+cd /lustre/gmeteo/WORK/garciar/c3s-cds/
+python catalogues/produce_catalog.py
