@@ -39,8 +39,6 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git add .
-          # git add catalogues/.
-          git add catalogues/*.csv catalogues/*.pdf || echo "No CSV/PDF changes"
+          git add -A
           git commit -m "Auto-update catalogues [skip ci]" || echo "No changes to commit"
           git push origin HEAD:${{ github.ref }}
