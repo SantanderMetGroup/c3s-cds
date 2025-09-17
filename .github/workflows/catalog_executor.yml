@@ -31,6 +31,8 @@ jobs:
 
       - name: Set up git auth
         run: |
+          git status
+          ls -l catalogues/
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
@@ -38,5 +40,6 @@ jobs:
       - name: Commit and push changes
         run: |
           git add -A
+          git add catalogues/*.csv catalogues/*.pdf || echo "No CSV/PDF changes"
           git commit -m "Auto-update catalogues [skip ci]" || echo "No changes to commit"
           git push origin HEAD:${{ github.ref }}
