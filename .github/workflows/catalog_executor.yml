@@ -18,7 +18,7 @@ jobs:
       - name: Run script
         shell: bash -l {0}
         run: |
-            JJOB_ID=$(sbatch catalogues/catalog_executor.job | grep -o '[0-9]\+')
+            JJOB_ID=$(sbatch /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/catalog_executor.sh | grep -o '[0-9]\+')
             echo "Job ID: $JOB_ID"
             echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
             echo "Esperando a que termine el job $JOB_ID..."
