@@ -1,9 +1,9 @@
 name: Creador catálogos
 
 on:
-  # push
-  schedule:
-    - cron: '0 0 * * *'
+  push
+  # schedule:
+  # - cron: '0 0 * * *'
 
 jobs:
   build:
@@ -13,8 +13,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          persist-credentials: false   # no dejamos credenciales automáticas
-          fetch-depth: 0               # necesario para poder hacer push
+          persist-credentials: false   
+          fetch-depth: 0               
 
       - name: Run script
         shell: bash -l {0}
