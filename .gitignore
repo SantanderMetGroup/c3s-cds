@@ -220,7 +220,7 @@ __marimo__/
 
 
 # Ignorar todos los CSV por defecto
-catalogues/*.csv
+# catalogues/*.csv
 
 # Excepción: incluir all_catalogues.csv
 !catalogues/all_catalogues.csv
