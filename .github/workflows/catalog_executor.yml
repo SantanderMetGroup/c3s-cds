@@ -13,27 +13,29 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          persist-credentials: false
-          
+          persist-credentials: false   # no dejamos credenciales automáticas
+          fetch-depth: 0               # necesario para poder hacer push
+
       - name: Run script
         shell: bash -l {0}
         run: |
-            JOB_ID=$(sbatch /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/catalog_executor.sh | grep -o '[0-9]\+')
-            echo "Job ID: $JOB_ID"
-            echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
-            echo "Esperando a que termine el job $JOB_ID..."
-            while squeue -j $JOB_ID | grep -q $JOB_ID; do
-              sleep 10
-            done
-            echo "Job $JOB_ID terminado."
+          JOB_ID=$(sbatch /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/catalog_executor.sh | grep -o '[0-9]\+')
+          echo "Job ID: $JOB_ID"
+          echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
+          echo "Esperando a que termine el job $JOB_ID..."
+          while squeue -j $JOB_ID | grep -q $JOB_ID; do
+            sleep 10
+          done
+          echo "Job $JOB_ID terminado."
+
+      - name: Set up git auth
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
       - name: Commit and push changes
-        shell: bash -l {0}
         run: |
-              git config --global user.name "github-actions[bot]"
-              git config --global user.email "github-actions[bot]@users.noreply.github.com"
-              git add -A
-              git commit -m "Auto-update catalogues [skip ci]" || echo "No changes to commit"
-              git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git add -A
+          git commit -m "Auto-update catalogues [skip ci]" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref }}
