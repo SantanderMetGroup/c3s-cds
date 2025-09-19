@@ -6,7 +6,7 @@ images_folder = "images"
 # CSV con la información completa
 all_catalogues_csv = "catalogues/all_catalogues.csv"
 # Nombre del fichero Markdown
-md_file = "catalogue.md"
+md_file = "README.md"
 
 with open(md_file, "w", encoding="utf-8") as f:
     f.write("# Catalogue Overview\n\n")

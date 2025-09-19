@@ -220,14 +220,15 @@ __marimo__/
 
 
 # Ignorar todos los CSV por defecto
-# catalogues/*.csv
+catalogues/*.csv
 
-# Excepción: incluir all_catalogues.csv
+# Excepciones: incluir todo lo que esté en subcarpetas
+!catalogues/catalogues/*.csv
+!catalogues/images/*.png
+
+# Asegurar que se sube all_catalogues.csv
 !catalogues/all_catalogues.csv
 
-# Incluir todos los PDF (por defecto git los sube)
-!catalogues/*.pdf
-!catalogues/*.png
 
 
 slurm*

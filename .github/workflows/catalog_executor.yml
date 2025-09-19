@@ -29,7 +29,7 @@ jobs:
       - name: Run script
         shell: bash -l {0}
         run: |
-          JOB_ID=$(sbatch /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/catalog_executor.sh | grep -o '[0-9]\+')
+          JOB_ID=$(sbatch catalogues/catalog_executor.sh | grep -o '[0-9]\+')
           echo "Job ID: $JOB_ID"
           echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
           echo "Esperando a que termine el job $JOB_ID..."
@@ -61,14 +61,14 @@ jobs:
           WORKSPACE="$PWD"
           # git add -f catalogues/catalogues/*
           # git add -f catalogues/images/*
-          mkdir -p "$WORKSPACE/catalogues/catalogues"
-          mkdir -p "$WORKSPACE/catalogues/images"
+          # mkdir -p "$WORKSPACE/catalogues/catalogues"
+          # mkdir -p "$WORKSPACE/catalogues/images"
 
-          cp /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/catalogues/* "$WORKSPACE/catalogues/catalogues/"
-          cp /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/images/* "$WORKSPACE/catalogues/images/"
+          # cp /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/catalogues/* "$WORKSPACE/catalogues/catalogues/"
+          # cp /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues/images/* "$WORKSPACE/catalogues/images/"
 
-          ls -l "$WORKSPACE/catalogues/catalogues"
-          ls -l "$WORKSPACE/catalogues/images"
+          # ls -l "$WORKSPACE/catalogues/catalogues"
+          # ls -l "$WORKSPACE/catalogues/images"
           
           git add -A
           git commit -m "Auto-update catalogues [skip ci]" || echo "No changes to commit"
