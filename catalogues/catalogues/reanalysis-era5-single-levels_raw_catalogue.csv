@@ -1,0 +1,3 @@
+variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
+u10,None,None,reanalysis-era5-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/u10,CDS,True,True,2022,2024
+v10,None,None,reanalysis-era5-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/v10,CDS,True,True,2022,2024
