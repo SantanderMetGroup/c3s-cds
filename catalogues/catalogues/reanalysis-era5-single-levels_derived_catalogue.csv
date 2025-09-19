@@ -1,0 +1,2 @@
+variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
+sfcwind,None,None,reanalysis-era5-single-levels,reanalysis,derived,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/derived/reanalysis-era5-single-levels/sfcwind,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/sfcwind,True,True,2022,2024
