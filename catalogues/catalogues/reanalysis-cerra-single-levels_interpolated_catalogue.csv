@@ -1,0 +1,3 @@
+variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
+t2m,None,None,reanalysis-cerra-single-levels,reanalysis,interpolated,land_sea_mask_0.0625degree.nc4,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/reanalysis-cerra-single-levels/t2m,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/t2m,True,True,198801,201712
+r2,None,None,reanalysis-cerra-single-levels,reanalysis,interpolated,land_sea_mask_0.0625degree.nc4,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/reanalysis-cerra-single-levels/r2,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/r2,True,True,198801,201712

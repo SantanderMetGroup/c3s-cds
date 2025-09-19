@@ -1,0 +1,2 @@
+variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
+tp,None,None,reanalysis-cerra-land,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/tp,CDS,True,True,198408,202106
