@@ -16,6 +16,16 @@ jobs:
           persist-credentials: false   
           fetch-depth: 0               
 
+
+
+      - name: Clean generated files
+        run: |
+          echo "Borrando CSVs e imágenes antiguas..."
+          rm -f catalogues/catalogues/*.csv
+          rm -f catalogues/images/*.png
+          echo "Ficheros borrados."
+
+          
       - name: Run script
         shell: bash -l {0}
         run: |
