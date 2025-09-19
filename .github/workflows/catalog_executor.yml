@@ -37,6 +37,15 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
+      - name: Debug workspace
+        run: |
+          echo "PWD: $(pwd)"
+          echo "Contenido de workspace:"
+          ls -R .
+          echo "Últimos cambios detectados por git:"
+          git status -u
+
+
       - name: Commit and push changes
         run: |
           git add -f catalogues/catalogues/*.csv
