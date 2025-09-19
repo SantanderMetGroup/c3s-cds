@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
 #SBATCH --time=72:00:00
-
+ 
 source ~/.bashrc
 mamba activate c3s-atlas
 # cd /lustre/gmeteo/WORK/garciar/c3s-cds/catalogues
