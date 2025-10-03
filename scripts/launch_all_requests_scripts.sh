@@ -35,7 +35,7 @@ python -c "import sys; assert sys.prefix and 'c3s-atlas' in sys.prefix" 2>/dev/n
 for script in $SCRIPTS; do
     if [[ -f "$script" ]]; then
         echo "Launching SLURM job for $script on node wn54"
-        sbatch --nodelist=wn054 --job-name=$(basename $script .py) --output=slurm-$(basename $script .py)-%j.out --wrap="python $script"
+        sbatch --nodelist=wn054 -p meteo_long --job-name=$(basename $script .py) --output=slurm-$(basename $script .py)-%j.out --wrap="python $script"
     else
         echo "Script not found: $script"
     fi
