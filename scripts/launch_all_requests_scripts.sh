@@ -31,11 +31,11 @@ for script in $SCRIPTS; do
         base=$(basename "$script" .py)
         out_file="$LOG_DIR/${base}-%j-%s.out"
         err_file="$LOG_DIR/${base}-%j-%s.err"
-        srun --nodelist=wn054 -p meteo_long \
-             --job-name="$base" \
-             --output="$out_file" \
-             --error="$err_file" \
-             --wrap="python $script"
+        sbatch --nodelist=wn054 -p meteo_long \
+               --job-name="$base" \
+               --output="$out_file" \
+               --error="$err_file" \
+               --wrap="python $script"
     else
         echo "Script not found: $script"
     fi
