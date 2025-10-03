@@ -1,0 +1,20 @@
+name: Run All Requests Scripts
+
+on:
+  push
+  #schedule:
+  #  - cron: '0 0 */3 * *'
+  #workflow_dispatch
+
+jobs:
+  run-scripts:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Make launcher executable
+        run: chmod +x scripts/launch_all_requests_scripts.sh
+      - name: Run launcher with SLURM
+        run: |
+          module load miniconda3
+          bash scripts/launch_all_requests_scripts.sh
