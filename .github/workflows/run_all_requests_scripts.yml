@@ -17,4 +17,5 @@ jobs:
       - name: Run launcher with SLURM
         shell: bash -l {0}
         run: |
+          mamba activate c3s-atlas
           bash scripts/launch_all_requests_scripts.sh
