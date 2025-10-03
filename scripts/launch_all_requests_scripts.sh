@@ -29,13 +29,16 @@ for script in $SCRIPTS; do
     if [[ -f "$script" ]]; then
         echo "Launching SLURM job for $script on node wn54"
         base=$(basename "$script" .py)
+        script_dir=$(dirname "$script")
+        script_file=$(basename "$script")
         out_file="$LOG_DIR/${base}-%j-%s.out"
         err_file="$LOG_DIR/${base}-%j-%s.err"
         sbatch --nodelist=wn054 -p meteo_long \
-               --job-name="$base" \
-               --output="$out_file" \
-               --error="$err_file" \
-               --wrap="python $script"
+             --job-name="$base" \
+             --output="$out_file" \
+             --error="$err_file" \
+             --chdir="$script_dir" \
+             --wrap="python $script_file"
     else
         echo "Script not found: $script"
     fi
