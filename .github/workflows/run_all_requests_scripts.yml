@@ -15,6 +15,6 @@ jobs:
       - name: Make launcher executable
         run: chmod +x scripts/launch_all_requests_scripts.sh
       - name: Run launcher with SLURM
+        shell: bash -l {0}
         run: |
-          module load miniconda3
           bash scripts/launch_all_requests_scripts.sh
