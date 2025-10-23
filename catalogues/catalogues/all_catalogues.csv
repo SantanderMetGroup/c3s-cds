@@ -1,12 +1,9 @@
 variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
-t2m,,,reanalysis-cerra-single-levels,reanalysis,interpolated,land_sea_mask_0.0625degree.nc4,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/reanalysis-cerra-single-levels/t2m,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/t2m,True,True,198801,201712
-r2,,,reanalysis-cerra-single-levels,reanalysis,interpolated,land_sea_mask_0.0625degree.nc4,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/reanalysis-cerra-single-levels/r2,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/r2,True,True,198801,201712
 tp,,,reanalysis-cerra-land,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/tp,CDS,True,True,198408,202106
-u10,,,reanalysis-era5-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/u10,CDS,True,True,2022,2024
-v10,,,reanalysis-era5-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/v10,CDS,True,True,2022,2024
-sfcwind,,,reanalysis-era5-single-levels,reanalysis,derived,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/derived/reanalysis-era5-single-levels/sfcwind,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/sfcwind,True,True,2022,2024
 t2m,,,reanalysis-cerra-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/t2m,CDS,True,True,198801,201712
 r2,,,reanalysis-cerra-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/r2,CDS,True,True,198801,201712
+t2m,,,reanalysis-cerra-single-levels,reanalysis,interpolated,land_sea_mask_0.0625degree.nc4,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/reanalysis-cerra-single-levels/t2m,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/t2m,True,True,198801,201712
+r2,,,reanalysis-cerra-single-levels,reanalysis,interpolated,land_sea_mask_0.0625degree.nc4,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/reanalysis-cerra-single-levels/r2,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/r2,True,True,198801,201712
 t2m,,,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2m,CDS,True,True,1940,2024
 t2mx,,,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2mx,CDS,True,True,1940,2024
 t2mn,,,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2mn,CDS,True,True,1940,2024
@@ -17,3 +14,6 @@ sp,,,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/
 ssrd,,,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/ssrd,CDS,True,True,1940,2024
 u10,,,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/u10,CDS,False,True,2022,2024
 v10,,,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/v10,CDS,False,True,2022,2024
+sfcwind,,,reanalysis-era5-single-levels,reanalysis,derived,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/derived/reanalysis-era5-single-levels/sfcwind,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/sfcwind,True,True,2022,2024
+u10,,,reanalysis-era5-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/u10,CDS,True,True,2022,2024
+v10,,,reanalysis-era5-single-levels,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/v10,CDS,True,True,2022,2024
