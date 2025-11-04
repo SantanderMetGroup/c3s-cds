@@ -34,14 +34,20 @@ def main():
     ds_ref=xr.open_dataset("/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/land_sea_mask_0.0625degree.nc4")
 
     for index, row in df_parameters.iterrows():
+        if row["product_type"] != "interpolated":
+            continue
         ds_variable=row["filename_variable"]
-        orig_dir = f"{row['path_download']}/{dataset}/{ds_variable}/"
+        orig_dir = f"{row['input_path']}/{dataset}/{ds_variable}/"
         output=f"/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/{dataset}/{ds_variable}/"
         os.makedirs(output, exist_ok=True) 
         pattern="*.nc"
         paths=np.sort(glob.glob(orig_dir+pattern))
         for file in paths:
+            filename = os.path.basename(file)
             print(file)
+            if os.path.exists(output+filename):
+                print(f"File {output+filename} already exists. Skipping...")
+                continue
             ds=xr.open_dataset(file)
             if "valid_time" in ds.dims:
                 ds = ds.rename({"valid_time": "time"})
@@ -52,13 +58,13 @@ def main():
                         'lons' : ds_ref.lon.values,
                         'var_name' : ds_variable
             }
-            filename = os.path.basename(file)
-            if os.path.exists(output+filename):
-                print(f"File {output+filename} already exists. Skipping...")
-                continue
+
             INTER = xesmfCICA.Interpolator(int_attr)
 
             ds_i = INTER(ds)
             write_to_netcdf(ds_i, output+filename,ds_variable)
+            ds.close()
+            ds_i.close()
+            del ds,ds_i
 if __name__ == "__main__":
     main()

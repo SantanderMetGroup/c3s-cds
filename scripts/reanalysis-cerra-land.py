@@ -1,21 +1,26 @@
 from utils import download_files
 
-
-
-
 def load_times(row):
+    h3_list=['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
     #First kewy word is for product type, second for time and 3rd for lead_time
     time_leadtime_mapping = {
         ("analysis","daily"):
           (
             ["06:00"],
             ["None"]#In cerra-land analysis for pr and accumulated vars the analysis at 6 give daily values
-        )
+        ),
+        ("forecast","3Hourly", "all"):
+          (
+            h3_list, #time of start of a forecast is every 3 hours from 00:00 to 21:00
+            ["1", "2", "3"] #lead time in hours from 1 to 3 in order to have the 24 hours
+        ),
     }
 
     # Retrieve the time and leadtime_hour based on the row values
     if row["cds_product_type"] == "analysis":
         result = time_leadtime_mapping.get((row["cds_product_type"],row["cds_time"]), ([], ["None"]))
+    elif row["cds_product_type"] == "forecast":
+        result = time_leadtime_mapping.get((row["cds_product_type"],row["cds_time"], row["cds_leadtime_hour"]), ([], []))
     if  len(result)<2:
         raise ValueError(
             f"Time or leadtime_hour is empty; the keyword combination {row['cds_product_type']}- {row['cds_time']} is not supported."

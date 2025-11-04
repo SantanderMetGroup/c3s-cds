@@ -87,7 +87,7 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
         dest_dir.mkdir(parents=True, exist_ok=True)
         year_list = list(range(row["cds_years_start"], row["cds_years_end"] + 1))
 
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=1) as executor:
             futures = []
             if montlhy_request:
                 month_list = [f"{month:02d}" for month in range(1, 13)]

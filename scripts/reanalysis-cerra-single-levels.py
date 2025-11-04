@@ -28,7 +28,6 @@ def load_times(row):
         raise ValueError(
             f"Time or leadtime_hour is empty; the keyword combination {row['cds_product_type']}- {row['cds_time']}- {row['cds_leadtime_hour']} is not supported."
         )
-    print(result)
 
     return result
 
@@ -65,9 +64,9 @@ def create_request(row,year,month="all"):
         month=[month]
     dict_request={
         "variable": [var],
-        "product_type": [product_type],
+        "product_type": product_type,
         "level_type": level_type,
-        "data_type": data_type,
+        "data_type": [data_type],
         "year": [year],
         "month": month,
         "day":day,

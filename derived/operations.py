@@ -36,7 +36,7 @@ def resample_to_daily(ds, time_dim='time', agg_freq='1D', agg_func='mean'):
 
     return resampled
 
-def load_path_from_df(df, variable_name, variable_column='filename_variable', path_column='path_download'):
+def load_path_from_df(df, variable_name, variable_column='filename_variable', path_column='input_path', product_type="raw"):
     """
     Load the path for a given variable from a df file.
 
@@ -51,8 +51,7 @@ def load_path_from_df(df, variable_name, variable_column='filename_variable', pa
     """
 
     # Filter the DataFrame to find the row with the specified variable
-    filtered_df = df[df[variable_column] == variable_name]
-
+    filtered_df = df[(df[variable_column] == variable_name) & (df['product_type'] == product_type)]
     # Check if any row matches the variable
     if not filtered_df.empty:
         # Return the path from the first matching row
