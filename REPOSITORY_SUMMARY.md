@@ -1,17 +1,17 @@
 # C3S-CDS Repository Summary
 
 ## Overview
-This repository is designed to **download, preprocess, standardize, and catalog climate data from the Copernicus Climate Data Store (CDS)**. It provides a complete workflow for managing climate reanalysis datasets (like ERA5 and CERRA) including downloading raw data, deriving new variables, interpolating to reference grids, standardizing formats, and maintaining catalogues of available data.
+This repository is designed to **download, preprocess, standardize, and catalog climate data from the Copernicus Climate Data Store (CDS)**. It provides a complete set of tools for managing climate reanalysis datasets (like ERA5 and CERRA) including downloading raw data, deriving new variables, interpolating to reference grids, standardizing formats, and maintaining catalogues of available data.
 
 ## Purpose
 The repository automates the process of:
 1. **Downloading** climate data from CDS using the CDS API
 2. **Deriving** new variables from raw data (e.g., calculating wind speed from u and v components)
 3. **Interpolating** datasets to reference grids for spatial consistency
-4. **Standardizing** variables to comply with CF conventions and CMIP standards
+4. **Standardizing** Unit transformations
 5. **Cataloguing** available datasets and generating visual reports
 
-## Data Flow Workflow
+## Data Flow Tools
 
 ### 1️⃣ **Configuration Phase**
 - Edit CSV files in `requests/` to specify:
@@ -57,11 +57,11 @@ Derived/Raw NetCDF → standardization/*.py → Standardized NetCDF
 - Update metadata attributes
 - Ensure CF convention compliance
 
-### 6️⃣ **Cataloguing Phase**
+### 6️⃣ **Cataloguing raw downloaded data phase**
 ```
 All NetCDF files → catalogues/produce_catalog.py → CSV + PDF reports
 ```
-- Scan all output directories
+- Scan all raw output directories
 - Check file existence for each year
 - Generate availability reports
 - Create visual heatmaps
@@ -199,12 +199,6 @@ Scripts that **generate visual catalogues** of available data
 ### 📓 **notebooks/**
 
 Jupyter notebooks for **exploration and testing**
-
----
-
-### 🔧 **ci/**
-
-Continuous Integration examples and helper scripts
 
 ---
 
