@@ -16,6 +16,7 @@ With date:
 | [provenance](https://github.com/SantanderMetGroup/c3s-cds/tree/main/provenance) | Contains one JSON file per catalogue describing the provenance and definitions of each variable.
 | [standardization](https://github.com/SantanderMetGroup/c3s-cds/tree/main/standardization) |  Python recipes to standardize the variables.
 | [derived](https://github.com/SantanderMetGroup/c3s-cds/tree/main/derived) |  Python recipes to calculate derived products from the variables.
+| [interpolation](https://github.com/SantanderMetGroup/c3s-cds/tree/main/interpolation) |  Python recipes to interpolate the data using reference grids.
 | [catalogues](https://github.com/SantanderMetGroup/c3s-cds/tree/main/catalogues) |  	CSV catalogues of datasets consolidated in Lustre or GPFS. The catalogues are updated through a nightly CI job.
 
 
