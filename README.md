@@ -63,6 +63,26 @@ With date:
 - "{year}{month}" for big datasets like CERRA saved month by month (download is faster this way). 
 - "{year}" for the other datasets that are saved year by year. 
 
+## Creating Directory Structure
+
+Before downloading data, you can create the complete folder structure without downloading or calculating any data:
+
+```bash
+# Preview what directories would be created (dry-run mode)
+python scripts/create_folder_structure.py --dry-run
+
+# Create all directories
+python scripts/create_folder_structure.py
+```
+
+The script reads all CSV files in the `requests/` directory and creates the directory structure according to the format:
+`{base_path}/{product_type}/{dataset}/{temporal_resolution}/{interpolation}/{variable}/`
+
+This is useful for:
+- Setting up the directory structure before starting downloads
+- Verifying the paths that will be used
+- Preparing storage locations in advance
+
 ## Contents
 
 | Directory | Contents |
