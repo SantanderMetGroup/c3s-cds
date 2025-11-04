@@ -21,6 +21,7 @@ def main():
         for year in year_list:
 
             if var == "sfcwind":
+                # Use utility function to load input paths
                 u10_download_path = operations.load_path_from_df(df_parameters, 'u10')
                 u_10_file = glob.glob(f"{u10_download_path}/*{year}*.nc")[0]
                 v10_download_path = operations.load_path_from_df(df_parameters, 'v10')
@@ -34,14 +35,9 @@ def main():
                 sfcwind = operations.sfcwind_from_u_v(ds_merge)
                 sfcwind_daily = operations.resample_to_daily(sfcwind,"valid_time")
                 
-                # Build output path using new structure
+                # Use utility function to build output path
                 row = var_row.iloc[0]
-                base_path = row['output_path']
-                product_type = row['product_type']
-                temporal_resolution = row['temporal_resolution']
-                interpolation = row['interpolation']
-                
-                dest_dir = Path(base_path) / product_type / dataset / temporal_resolution / interpolation / var
+                dest_dir = operations.load_output_path_from_row(row, dataset)
                 os.makedirs(dest_dir, exist_ok=True)
                 sfcwind_file = os.path.basename(u_10_file).replace("u10", "sfcwind")
                 logging.info(f"Saving calculated sfcwind to {dest_dir}")     

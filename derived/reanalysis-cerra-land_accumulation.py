@@ -131,6 +131,7 @@ if __name__ == "__main__":
     for var in derived_variables_list:
         logging.info(f"Calculating {var}")
         var_row=df_parameters[df_parameters['filename_variable'] == var]
+        # Use utility function to load input path
         var_download_path = operations.load_path_from_df(df_parameters, var, path_column='input_path', product_type='raw')
         var_files = np.sort(glob.glob(f"{var_download_path}/*.nc"))
         print(f"{var_download_path}/*.nc")
@@ -145,14 +146,9 @@ if __name__ == "__main__":
             ds_accumulated=accumulation(ds_var,var)
             first_month_data = get_first_month_accumulated(ds_accumulated)
 
-            # Build output path using new structure
+            # Use utility function to build output path
             row = var_row.iloc[0]
-            base_path = row['output_path']
-            product_type = row['product_type']
-            temporal_resolution = row['temporal_resolution']
-            interpolation = row['interpolation']
-            
-            dest_dir = Path(base_path) / product_type / dataset / temporal_resolution / interpolation / var
+            dest_dir = operations.load_output_path_from_row(row, dataset)
             logging.info(f"Saving calculated {var} to {dest_dir}")
             os.makedirs(dest_dir, exist_ok=True)     
             var_file = os.path.basename(file).replace(".nc", "_daily_accumulated.nc")

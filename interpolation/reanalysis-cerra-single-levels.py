@@ -5,6 +5,9 @@ import glob
 import os
 import pandas as pd
 from pathlib import Path
+import sys
+sys.path.append('../scripts')
+from utils import load_input_path_from_row, load_output_path_from_row
 
 def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     """
@@ -32,7 +35,11 @@ def main():
     dataset="reanalysis-cerra-single-levels"
     variables_file_path = f"../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
-    ds_ref=xr.open_dataset("/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/land_sea_mask_0.0625degree.nc4")
+    
+    # Load the reference grid file from the first interpolated row
+    interpolated_row = df_parameters[(df_parameters['interpolation'] != 'native') & (df_parameters['product_type'] == 'derived')].iloc[0]
+    interpolation_file = interpolated_row.get('interpolation_file', 'land_sea_mask_0.0625degree.nc4')
+    ds_ref=xr.open_dataset(f"/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/{interpolation_file}")
 
     for index, row in df_parameters.iterrows():
         # Process rows with non-native interpolation (interpolated data is now in derived product_type)
@@ -42,19 +49,12 @@ def main():
             continue
         ds_variable=row["filename_variable"]
         
-        # Build input path using new structure
-        base_input_path = row['input_path']
-        temporal_resolution = row['temporal_resolution']
-        # Input is from raw data, so we need to get the interpolation value from the raw data row
+        # Use utility function to load input path (from raw data)
         raw_row = df_parameters[(df_parameters['filename_variable'] == ds_variable) & (df_parameters['product_type'] == 'raw')].iloc[0]
-        raw_interpolation = raw_row['interpolation']
+        orig_dir = load_output_path_from_row(raw_row, dataset)
         
-        orig_dir = Path(base_input_path) / 'raw' / dataset / temporal_resolution / raw_interpolation / ds_variable
-        
-        # Build output path using new structure
-        base_output_path = row['output_path']
-        output_interpolation = row['interpolation']
-        output_dir = Path(base_output_path) / row['product_type'] / dataset / temporal_resolution / output_interpolation / ds_variable
+        # Use utility function to load output path
+        output_dir = load_output_path_from_row(row, dataset)
         output_dir.mkdir(parents=True, exist_ok=True)
         
         pattern="*.nc"
