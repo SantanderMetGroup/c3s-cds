@@ -64,6 +64,34 @@ def download_single_file(catalogue_id: str, catalogue_entry: dict, output_path: 
 
 
 
+def build_output_path(base_path, dataset, product_type, temporal_resolution, interpolation, variable):
+    """
+    Build the output path following the new directory structure.
+    
+    Structure: {base_path}/{product_type}/{dataset}/{temporal_resolution}/{interpolation}/{variable}/
+    
+    Parameters
+    ----------
+    base_path : str or Path
+        Base directory path
+    dataset : str
+        Dataset name (e.g., 'reanalysis-era5-single-levels')
+    product_type : str
+        Type of product: 'raw', 'derived', or 'interpolated'
+    temporal_resolution : str
+        Temporal resolution: 'hourly', 'daily', '3hourly', '6hourly', 'monthly', etc.
+    interpolation : str
+        Interpolation method: 'native' (for non-interpolated), 'gr006', etc.
+    variable : str
+        Variable name (e.g., 'u10', 'v10', 'sfcwind')
+    
+    Returns
+    -------
+    Path
+        Full output path
+    """
+    return Path(base_path) / product_type / dataset / temporal_resolution / interpolation / variable
+
 def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func,montlhy_request=False):
     """
     Download files for the specified variables and years.
@@ -83,7 +111,14 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
     for index, row in df_parameters.iterrows():
         if row["product_type"] != "raw":
             continue
-        dest_dir = Path(row["output_path"]) / dataset / row["filename_variable"]
+        dest_dir = build_output_path(
+            row["output_path"], 
+            dataset, 
+            row["product_type"],
+            row["temporal_resolution"],
+            row["interpolation"],
+            row["filename_variable"]
+        )
         dest_dir.mkdir(parents=True, exist_ok=True)
         year_list = list(range(row["cds_years_start"], row["cds_years_end"] + 1))
 

@@ -4,6 +4,7 @@ import xarray as xr
 import glob
 import os
 import logging
+from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def main():
@@ -21,9 +22,9 @@ def main():
 
             if var == "sfcwind":
                 u10_download_path = operations.load_path_from_df(df_parameters, 'u10')
-                u_10_file = glob.glob(f"{u10_download_path}/{dataset}/u10/*{year}*.nc")[0]
+                u_10_file = glob.glob(f"{u10_download_path}/*{year}*.nc")[0]
                 v10_download_path = operations.load_path_from_df(df_parameters, 'v10')
-                v_10_file = glob.glob(f"{v10_download_path}/{dataset}/v10/*{year}*.nc")[0]
+                v_10_file = glob.glob(f"{v10_download_path}/*{year}*.nc")[0]
 
 
                 logging.info(f"Calculating sfcwind from {u_10_file} and {v_10_file}")
@@ -32,8 +33,15 @@ def main():
                 ds_merge = xr.merge([ds_u, ds_v])
                 sfcwind = operations.sfcwind_from_u_v(ds_merge)
                 sfcwind_daily = operations.resample_to_daily(sfcwind,"valid_time")
-                dest_dir = operations.load_path_from_df(df_parameters, 'sfcwind')
-                dest_dir = dest_dir+f"/{dataset}/sfcwind"
+                
+                # Build output path using new structure
+                row = var_row.iloc[0]
+                base_path = row['output_path']
+                product_type = row['product_type']
+                temporal_resolution = row['temporal_resolution']
+                interpolation = row['interpolation']
+                
+                dest_dir = Path(base_path) / product_type / dataset / temporal_resolution / interpolation / var
                 os.makedirs(dest_dir, exist_ok=True)
                 sfcwind_file = os.path.basename(u_10_file).replace("u10", "sfcwind")
                 logging.info(f"Saving calculated sfcwind to {dest_dir}")     

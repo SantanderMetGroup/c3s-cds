@@ -54,8 +54,17 @@ def load_path_from_df(df, variable_name, variable_column='filename_variable', pa
     filtered_df = df[(df[variable_column] == variable_name) & (df['product_type'] == product_type)]
     # Check if any row matches the variable
     if not filtered_df.empty:
-        # Return the path from the first matching row
-        return filtered_df[path_column].iloc[0]
+        # Build the full path using the new structure
+        row = filtered_df.iloc[0]
+        from pathlib import Path
+        base_path = row[path_column]
+        dataset = row['dataset']
+        temporal_resolution = row['temporal_resolution']
+        interpolation = row['interpolation']
+        
+        # Build path: {base_path}/{product_type}/{dataset}/{temporal_resolution}/{interpolation}/{variable}/
+        full_path = Path(base_path) / product_type / dataset / temporal_resolution / interpolation / variable_name
+        return str(full_path)
     else:
         # Return None if no matching variable is found
         return None

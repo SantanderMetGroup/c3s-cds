@@ -127,11 +127,30 @@ def get_earliest_and_latest_dates(directory):
 def create_auxiliar_df(data):
     rows = []
     for _, row in data.iterrows():
-        data_path = os.path.join(row['output_path'], row['dataset'], row['filename_variable'])
+        # Build data_path using new structure
+        from pathlib import Path
+        base_path = row['output_path']
+        dataset = row['dataset']
+        product_type = row['product_type']
+        temporal_resolution = row['temporal_resolution']
+        interpolation = row['interpolation']
+        variable = row['filename_variable']
+        
+        data_path = Path(base_path) / product_type / dataset / temporal_resolution / interpolation / variable
+        data_path = str(data_path)
+        
         if row['input_path']=="CDS":
             origin_path="CDS"
         else:
-            origin_path = os.path.join(row['input_path'], row['dataset'], row['filename_variable'])
+            # Build origin_path using new structure for derived/interpolated data
+            base_input_path = row['input_path']
+            # For derived and interpolated, we need to reference the raw data
+            if product_type in ['derived', 'interpolated']:
+                # The origin is typically raw data with same temporal resolution
+                origin_path = Path(base_input_path) / 'raw' / dataset / temporal_resolution / 'native' / variable
+                origin_path = str(origin_path)
+            else:
+                origin_path = data_path
 
         start_year_exists = check_nc_file_for_year(data_path, row['cds_years_start'])
         end_year_exists = check_nc_file_for_year(data_path, row['cds_years_end'])
@@ -145,6 +164,7 @@ def create_auxiliar_df(data):
             'dataset': row['dataset'],
             'dataset_type': row['dataset_type'],
             'product_type': row['product_type'],
+            'temporal_resolution': row['temporal_resolution'],
             'interpolation': row['interpolation'],
             'data_path': data_path,
             'origin_path': origin_path,
@@ -164,7 +184,7 @@ def create_auxiliar_df(data):
     # Create DataFrame with the desired column order
     df = pd.DataFrame(rows, columns=[
         'variable', 'model', 'experiment', 'dataset', 'dataset_type',
-        'product_type', 'interpolation', 'data_path', 'origin_path',
+        'product_type', 'temporal_resolution', 'interpolation', 'data_path', 'origin_path',
         'start_file_exists', 'final_file_exists', 'earliest_date', 'latest_date'
     ])
 

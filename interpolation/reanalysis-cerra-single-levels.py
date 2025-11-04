@@ -4,6 +4,7 @@ import xarray as xr
 import glob
 import os
 import pandas as pd
+from pathlib import Path
 
 def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     """
@@ -37,16 +38,30 @@ def main():
         if row["product_type"] != "interpolated":
             continue
         ds_variable=row["filename_variable"]
-        orig_dir = f"{row['input_path']}/{dataset}/{ds_variable}/"
-        output=f"/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/gr006/{dataset}/{ds_variable}/"
-        os.makedirs(output, exist_ok=True) 
+        
+        # Build input path using new structure
+        base_input_path = row['input_path']
+        temporal_resolution = row['temporal_resolution']
+        # Input is from raw data, so we need to get the interpolation value from the raw data row
+        raw_row = df_parameters[(df_parameters['filename_variable'] == ds_variable) & (df_parameters['product_type'] == 'raw')].iloc[0]
+        raw_interpolation = raw_row['interpolation']
+        
+        orig_dir = Path(base_input_path) / 'raw' / dataset / temporal_resolution / raw_interpolation / ds_variable
+        
+        # Build output path using new structure
+        base_output_path = row['output_path']
+        output_interpolation = row['interpolation']
+        output_dir = Path(base_output_path) / row['product_type'] / dataset / temporal_resolution / output_interpolation / ds_variable
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
         pattern="*.nc"
-        paths=np.sort(glob.glob(orig_dir+pattern))
+        paths=np.sort(glob.glob(str(orig_dir / pattern)))
         for file in paths:
             filename = os.path.basename(file)
             print(file)
-            if os.path.exists(output+filename):
-                print(f"File {output+filename} already exists. Skipping...")
+            output_file = output_dir / filename
+            if output_file.exists():
+                print(f"File {output_file} already exists. Skipping...")
                 continue
             ds=xr.open_dataset(file)
             if "valid_time" in ds.dims:
@@ -62,7 +77,7 @@ def main():
             INTER = xesmfCICA.Interpolator(int_attr)
 
             ds_i = INTER(ds)
-            write_to_netcdf(ds_i, output+filename,ds_variable)
+            write_to_netcdf(ds_i, str(output_file), ds_variable)
             ds.close()
             ds_i.close()
             del ds,ds_i
