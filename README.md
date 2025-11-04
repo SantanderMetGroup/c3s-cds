@@ -14,8 +14,7 @@ The repository uses a structured directory path format to organize downloaded, d
 **Path Components:**
 - `product_type`: Type of data processing
   - `raw`: Data downloaded directly from CDS
-  - `derived`: Variables calculated from raw data (e.g., wind speed from u/v components)
-  - `interpolated`: Data regridded to a reference grid
+  - `derived`: Variables calculated from raw data (e.g., wind speed from u/v components) or interpolated to different grids
 - `dataset`: CDS dataset name (e.g., `reanalysis-era5-single-levels`, `reanalysis-cerra-single-levels`)
 - `temporal_resolution`: Time frequency of the data
   - `hourly`: Hourly data (e.g., ERA5 with all 24 hours)
@@ -24,7 +23,7 @@ The repository uses a structured directory path format to organize downloaded, d
   - `6hourly`: 6-hourly data
   - `monthly`: Monthly data
 - `interpolation`: Grid specification
-  - `native`: Original grid (non-interpolated data)
+  - `native`: Original grid (no interpolation)
   - `gr006`: 0.0625 degree grid (6.25 km)
   - Other grid specifications as needed
 - `variable`: Variable name (e.g., `u10`, `v10`, `sfcwind`, `t2m`)
@@ -37,7 +36,7 @@ The repository uses a structured directory path format to organize downloaded, d
    /lustre/.../raw/reanalysis-era5-single-levels/hourly/native/v10/
    ```
 
-2. **Derived daily wind speed from ERA5:**
+2. **Derived daily wind speed from ERA5 (calculated variable):**
    ```
    /lustre/.../derived/reanalysis-era5-single-levels/daily/native/sfcwind/
    ```
@@ -47,15 +46,17 @@ The repository uses a structured directory path format to organize downloaded, d
    /lustre/.../raw/reanalysis-cerra-single-levels/3hourly/native/t2m/
    ```
 
-4. **Interpolated CERRA data to 0.0625 degree grid:**
+4. **Derived CERRA data interpolated to 0.0625 degree grid:**
    ```
-   /lustre/.../interpolated/reanalysis-cerra-single-levels/3hourly/gr006/t2m/
+   /lustre/.../derived/reanalysis-cerra-single-levels/3hourly/gr006/t2m/
    ```
 
 5. **ERA5 daily statistics:**
    ```
    /lustre/.../raw/derived-era5-single-levels-daily-statistics/daily/native/t2m/
    ```
+
+**Note:** Interpolated data is stored under `derived` with the `interpolation` field indicating the target grid (e.g., `gr006`). This distinguishes it from calculated variables which use `interpolation=native`.
 
 ## Filename format:
 Format of the files is "{var}\_{dataset}\_{date}.nc"

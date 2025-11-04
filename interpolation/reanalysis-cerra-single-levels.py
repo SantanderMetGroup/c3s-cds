@@ -35,7 +35,10 @@ def main():
     ds_ref=xr.open_dataset("/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/land_sea_mask_0.0625degree.nc4")
 
     for index, row in df_parameters.iterrows():
-        if row["product_type"] != "interpolated":
+        # Process rows with non-native interpolation (interpolated data is now in derived product_type)
+        if row["interpolation"] == "native":
+            continue
+        if row["product_type"] != "derived":
             continue
         ds_variable=row["filename_variable"]
         

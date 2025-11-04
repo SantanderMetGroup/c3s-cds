@@ -39,7 +39,9 @@ def build_output_path(base_path, dataset, product_type, temporal_resolution, int
     dataset : str
         Dataset name (e.g., 'reanalysis-era5-single-levels')
     product_type : str
-        Type of product: 'raw', 'derived', or 'interpolated'
+        Type of product: 'raw' or 'derived'
+        - 'raw': Data downloaded directly from CDS
+        - 'derived': Calculated or interpolated data
     temporal_resolution : str
         Temporal resolution: 'hourly', 'daily', '3hourly', '6hourly', 'monthly', etc.
     interpolation : str
@@ -188,11 +190,15 @@ def main():
     # Show unique paths by category
     raw_dirs = [d for d in all_created_dirs if '/raw/' in d]
     derived_dirs = [d for d in all_created_dirs if '/derived/' in d]
-    interpolated_dirs = [d for d in all_created_dirs if '/interpolated/' in d]
+    # Count derived directories with non-native interpolation (interpolated data)
+    interpolated_dirs = [d for d in derived_dirs if '/native/' not in d]
+    # Count derived directories with native interpolation (calculated variables)
+    calculated_dirs = [d for d in derived_dirs if '/native/' in d]
     
     logging.info(f"  - Raw data directories: {len(raw_dirs)}")
     logging.info(f"  - Derived data directories: {len(derived_dirs)}")
-    logging.info(f"  - Interpolated data directories: {len(interpolated_dirs)}")
+    logging.info(f"    - Calculated variables (native): {len(calculated_dirs)}")
+    logging.info(f"    - Interpolated data (non-native): {len(interpolated_dirs)}")
     logging.info("=" * 80)
     
     if args.dry_run:

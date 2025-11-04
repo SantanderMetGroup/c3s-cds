@@ -77,7 +77,9 @@ def build_output_path(base_path, dataset, product_type, temporal_resolution, int
     dataset : str
         Dataset name (e.g., 'reanalysis-era5-single-levels')
     product_type : str
-        Type of product: 'raw', 'derived', or 'interpolated'
+        Type of product: 'raw' or 'derived'
+        - 'raw': Data downloaded directly from CDS
+        - 'derived': Calculated or interpolated data
     temporal_resolution : str
         Temporal resolution: 'hourly', 'daily', '3hourly', '6hourly', 'monthly', etc.
     interpolation : str

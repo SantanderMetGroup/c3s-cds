@@ -142,10 +142,10 @@ def create_auxiliar_df(data):
         if row['input_path']=="CDS":
             origin_path="CDS"
         else:
-            # Build origin_path using new structure for derived/interpolated data
+            # Build origin_path using new structure for derived data
             base_input_path = row['input_path']
-            # For derived and interpolated, we need to reference the raw data
-            if product_type in ['derived', 'interpolated']:
+            # For derived data (including interpolated), we need to reference the raw data
+            if product_type == 'derived':
                 # The origin is typically raw data with same temporal resolution
                 origin_path = Path(base_input_path) / 'raw' / dataset / temporal_resolution / 'native' / variable
                 origin_path = str(origin_path)
@@ -239,7 +239,9 @@ def process_csv_file(file_path,type_data):
 
 
 def main():
-    type_data_list=["raw","interpolated","derived"]
+    # Note: Interpolated data is now stored as 'derived' with non-native interpolation
+    # We keep this list for backwards compatibility with existing catalogues
+    type_data_list=["raw","derived"]
     
     #1-Process the request csv files
     csv_directory = '../requests'

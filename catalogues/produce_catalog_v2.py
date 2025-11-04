@@ -171,7 +171,8 @@ def process_csv_file(file_path, type_data):
 
 # ---------------- Main ----------------
 def main():
-    type_data_list = ["raw","interpolated","derived"]
+    # Note: Interpolated data is now stored as 'derived' with non-native interpolation
+    type_data_list = ["raw","derived"]
     csv_directory = '../requests'
 
     # Procesar CSVs individuales
