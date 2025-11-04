@@ -7,6 +7,10 @@ import numpy as np
 import logging
 import os
 import calendar
+import sys
+sys.path.append('../scripts')
+from utils import load_path_from_df, load_output_path_from_row
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def write_to_netcdf(dataset: xr.Dataset, path: Path, var: str, lonlattime_name: list =["x,y,valid_time"]):
@@ -132,7 +136,7 @@ if __name__ == "__main__":
         logging.info(f"Calculating {var}")
         var_row=df_parameters[df_parameters['filename_variable'] == var]
         # Use utility function to load input path
-        var_download_path = operations.load_path_from_df(df_parameters, var, path_column='input_path', product_type='raw')
+        var_download_path = load_path_from_df(df_parameters, var, path_column='input_path', product_type='raw')
         var_files = np.sort(glob.glob(f"{var_download_path}/*.nc"))
         print(f"{var_download_path}/*.nc")
         logging.info(f"List of file variables: {var_files}")
@@ -148,7 +152,7 @@ if __name__ == "__main__":
 
             # Use utility function to build output path
             row = var_row.iloc[0]
-            dest_dir = operations.load_output_path_from_row(row, dataset)
+            dest_dir = load_output_path_from_row(row, dataset)
             logging.info(f"Saving calculated {var} to {dest_dir}")
             os.makedirs(dest_dir, exist_ok=True)     
             var_file = os.path.basename(file).replace(".nc", "_daily_accumulated.nc")

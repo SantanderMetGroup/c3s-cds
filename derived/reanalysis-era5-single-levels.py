@@ -5,6 +5,10 @@ import glob
 import os
 import logging
 from pathlib import Path
+import sys
+sys.path.append('../scripts')
+from utils import load_path_from_df, load_output_path_from_row
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def main():
@@ -22,9 +26,9 @@ def main():
 
             if var == "sfcwind":
                 # Use utility function to load input paths
-                u10_download_path = operations.load_path_from_df(df_parameters, 'u10')
+                u10_download_path = load_path_from_df(df_parameters, 'u10')
                 u_10_file = glob.glob(f"{u10_download_path}/*{year}*.nc")[0]
-                v10_download_path = operations.load_path_from_df(df_parameters, 'v10')
+                v10_download_path = load_path_from_df(df_parameters, 'v10')
                 v_10_file = glob.glob(f"{v10_download_path}/*{year}*.nc")[0]
 
 
@@ -37,7 +41,7 @@ def main():
                 
                 # Use utility function to build output path
                 row = var_row.iloc[0]
-                dest_dir = operations.load_output_path_from_row(row, dataset)
+                dest_dir = load_output_path_from_row(row, dataset)
                 os.makedirs(dest_dir, exist_ok=True)
                 sfcwind_file = os.path.basename(u_10_file).replace("u10", "sfcwind")
                 logging.info(f"Saving calculated sfcwind to {dest_dir}")     
