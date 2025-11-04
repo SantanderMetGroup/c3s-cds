@@ -81,7 +81,7 @@ def get_output_filename(row,dataset,year,month):
 def main():
     dataset="reanalysis-cerra-land"
     variables_file_path = f"../requests/{dataset}.csv"
-    download_files(dataset, variables_file_path, create_request, get_output_filename,montlhy_request=True)
+    download_files(dataset, variables_file_path, create_request, get_output_filename, monthly_request=True)
 
 if __name__ == "__main__":
     main()

@@ -92,7 +92,7 @@ def build_output_path(base_path, dataset, product_type, temporal_resolution, int
     """
     return Path(base_path) / product_type / dataset / temporal_resolution / interpolation / variable
 
-def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func,montlhy_request=False):
+def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func, monthly_request=False):
     """
     Download files for the specified variables and years.
 
@@ -106,6 +106,8 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
         Function to create the request dictionary.
     get_output_filename_func : function
         Function to get the output filename.
+    monthly_request : bool
+        Whether to make monthly requests instead of yearly requests.
     """
     df_parameters = pd.read_csv(variables_file_path)
     for index, row in df_parameters.iterrows():
@@ -124,7 +126,7 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
 
         with ThreadPoolExecutor(max_workers=1) as executor:
             futures = []
-            if montlhy_request:
+            if monthly_request:
                 month_list = [f"{month:02d}" for month in range(1, 13)]
                 for year in year_list:
                     for month in  month_list:
