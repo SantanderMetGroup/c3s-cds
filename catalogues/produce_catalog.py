@@ -5,6 +5,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import logging
 import glob
+import sys
+sys.path.append('../scripts')
+from utils import build_output_path, load_output_path_from_row
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -96,8 +99,27 @@ def get_earliest_and_latest_dates(directory):
 def create_auxiliar_df(data):
     rows = []
     for _, row in data.iterrows():
-        data_path = os.path.join(row['output_path'], row['dataset'], row['filename_variable'])
-        origin_path = "CDS" if row['input_path']=="CDS" else os.path.join(row['input_path'], row['dataset'], row['filename_variable'])
+        # Use utility function to build data_path
+        data_path = str(load_output_path_from_row(row))
+        
+        # Build origin_path
+        if row['input_path'] == "CDS":
+            origin_path = "CDS"
+        else:
+            # For derived data, origin is typically raw data with same temporal resolution
+            if row['product_type'] == 'derived':
+                origin_path = str(build_output_path(
+                    row['input_path'],
+                    row['dataset'],
+                    'raw',
+                    row['temporal_resolution'],
+                    'native',  # Origin is typically native (non-interpolated)
+                    row['filename_variable']
+                ))
+            else:
+                # For raw data, origin is the same as data_path
+                origin_path = data_path
+        
         start_year_exists = check_nc_file_for_year(data_path, row['cds_years_start'])
         end_year_exists = check_nc_file_for_year(data_path, row['cds_years_end'])
         earliest_dates, latest_dates = get_earliest_and_latest_dates(data_path)
@@ -109,6 +131,7 @@ def create_auxiliar_df(data):
             'dataset': row['dataset'],
             'dataset_type': row['dataset_type'],
             'product_type': row['product_type'],
+            'temporal_resolution': row['temporal_resolution'],
             'interpolation': row['interpolation'],
             'data_path': data_path,
             'origin_path': origin_path,
@@ -126,7 +149,7 @@ def create_auxiliar_df(data):
 
     df = pd.DataFrame(rows, columns=[
         'variable','model','experiment','dataset','dataset_type',
-        'product_type','interpolation','data_path','origin_path',
+        'product_type','temporal_resolution','interpolation','data_path','origin_path',
         'start_file_exists','final_file_exists','earliest_date','latest_date'
     ])
     return df, row['dataset_type']
