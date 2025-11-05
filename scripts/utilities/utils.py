@@ -7,6 +7,9 @@ import logging
 import yaml
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
+from c3s_atlas.utils import (
+    extract_zip_and_delete
+)
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 warnings.filterwarnings("ignore")
@@ -252,6 +255,7 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                             logging.info(f"{path_file} already exists, skipping")
                             continue
                         futures.append(executor.submit(download_single_file, dataset, request, path_file))
+
             elif year_request:
                 for year in year_list:
                     request = create_request_func(row, year)
@@ -265,11 +269,12 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                 request = create_request_func(row)
                 file = get_output_filename_func(row, dataset)
                 path_file = dest_dir / file
-                if path_file.exists():
+                if Path(str(path_file).replace('zip','nc')).exists():
                     logging.info(f"{path_file} already exists, skipping")
                     continue
                 futures.append(executor.submit(download_single_file, dataset, request, path_file))
-
+                if path_file.suffix == '.zip':
+                            futures.append(executor.submit(extract_zip_and_delete, path_file))
             for future in futures:
                 try:
                     future.result()

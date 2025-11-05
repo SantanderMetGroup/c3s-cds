@@ -6,10 +6,10 @@ from utils import download_files
 
 
 def get_output_filename(row,dataset):
-
+    version=row["cds_version"]
     var=row["filename_variable"]
-    date=f"{row["cds_years_start"]}-{row["cds_years_end"]}"
-    return f"{var}_{dataset}_{date}.nc"
+    date=f"{row['cds_years_start']}-{row['cds_years_end']}"
+    return f"{var}_{dataset}_{date}_{version}.zip"
 
 def create_request(row):
     var=row["cds_request_variable"]
@@ -31,7 +31,6 @@ def create_request(row):
 def main():
     dataset = "insitu-gridded-observations-europe"
     variables_file_path = f"../../requests/{dataset}.csv"
-    download_files(dataset, variables_file_path, create_request, get_output_filename)
-
+    download_files(dataset, variables_file_path, create_request, get_output_filename,year_request=False)
 if __name__ == "__main__":
     main()

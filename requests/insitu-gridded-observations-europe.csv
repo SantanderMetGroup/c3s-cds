@@ -1,2 +1,2 @@
 dataset,dataset_type,filename_variable,cds_request_variable,cds_years_start,cds_years_end,cds_product_type,cds_grid_resolution,cds_version,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file
-insitu-gridded-observations-europe,observation,tp,mean_temperature,1950,2024,ensemble_mean,0_1deg,31_0e,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/download/insitu-gridded-observations-europe.py,raw,daily,native,None
+insitu-gridded-observations-europe,observation,tg,mean_temperature,1950,2024,ensemble_mean,0_1deg,31_0e,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/download/insitu-gridded-observations-europe.py,raw,daily,native,None
