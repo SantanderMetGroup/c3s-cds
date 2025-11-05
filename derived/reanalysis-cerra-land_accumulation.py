@@ -8,8 +8,9 @@ import logging
 import os
 import calendar
 import sys
+from datetime import datetime
 sys.path.append('../scripts')
-from utils import load_path_from_df, load_output_path_from_row
+from utils import load_input_path_from_row, load_output_path_from_row
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -73,8 +74,9 @@ def check_time_gap(file1, file2, expected_timestep='1h'):
     expected_timedelta = np.timedelta64(int(expected_timestep[:-1]), expected_timestep[-1])
 
     # Check for gaps
-    if time_diff > expected_timedelta:
-        raise ValueError(f"Gap detected between {file1} and {file2}: {time_diff}. Expected: {expected_timestep}.")
+    if time_diff > expected_timedelta*1.1:
+        raise ValueError(f"Gap detected between {file1} and {file2}: {time_diff}/{expected_timedelta}. Expected: {expected_timestep}."
+                         f"Time in each dataset is {last_time_file1} and {first_time_file2}")
     else:
         logging.info(f"No gap detected between {file1} and {file2}. time_diff: {expected_timedelta}")
     ds1.close()
@@ -134,14 +136,33 @@ if __name__ == "__main__":
 
     for var in derived_variables_list:
         logging.info(f"Calculating {var}")
-        var_row=df_parameters[df_parameters['filename_variable'] == var]
+        input_row = df_parameters[(df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'raw')]
+
+        var_row = df_parameters[(df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'derived')]
         # Use utility function to load input path
-        var_download_path = load_path_from_df(df_parameters, var, path_column='input_path', product_type='raw')
+        var_download_path = load_output_path_from_row(input_row.iloc[0], dataset)
         var_files = np.sort(glob.glob(f"{var_download_path}/*.nc"))
         print(f"{var_download_path}/*.nc")
         logging.info(f"List of file variables: {var_files}")
         # Iterate over files and process accumulation, need two files for last hour accumulation
         for i,file in enumerate(var_files):
+            basename = os.path.basename(file)
+            print(basename)
+            date_str = basename.split('_')[-1].replace(".nc","")  
+            date_obj = datetime.strptime(date_str, "%Y%m")
+            year = date_obj.year
+            logging.info(f"Processing year: {year} and end year: {var_row.cds_years_end.iloc[0]}")
+            if year> var_row.cds_years_end.iloc[0]:
+                logging.info("Skipping file as it is after the end year")
+                continue
+            dest_dir = load_output_path_from_row(var_row.iloc[0], dataset)
+            var_file = os.path.basename(file).replace(".nc", "_daily_accumulated.nc")
+            output_file=Path(f"{dest_dir}/{var_file}")
+            logging.info(f"Saving calculated {var} to {dest_dir}")
+            os.makedirs(dest_dir, exist_ok=True)   
+            if output_file.exists():
+                logging.info(f"File {output_file} already exists. Skipping...")
+                continue
             next_file=var_files[i+1] if i+1 < len(var_files) else None
             logging.info(f"Processing file {file} and next file {next_file}")
 
@@ -150,13 +171,9 @@ if __name__ == "__main__":
             ds_accumulated=accumulation(ds_var,var)
             first_month_data = get_first_month_accumulated(ds_accumulated)
 
-            # Use utility function to build output path
-            row = var_row.iloc[0]
-            dest_dir = load_output_path_from_row(row, dataset)
-            logging.info(f"Saving calculated {var} to {dest_dir}")
-            os.makedirs(dest_dir, exist_ok=True)     
-            var_file = os.path.basename(file).replace(".nc", "_daily_accumulated.nc")
-            write_to_netcdf(first_month_data, Path(f"{dest_dir}/{var_file}"), var=var)
+
+  
+            write_to_netcdf(first_month_data, output_file, var=var)
             
             ds_var.close()
             del ds_var, ds_accumulated, first_month_data

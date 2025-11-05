@@ -1,2 +1,5 @@
 variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
-tp,None,None,reanalysis-cerra-land,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/tp,CDS,True,True,198408,202106
+tp,None,None,reanalysis-cerra-land,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-land/tp,CDS,False,False,,
+eva,None,None,reanalysis-cerra-land,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-land/eva,CDS,False,False,,
+ssrd,None,None,reanalysis-cerra-land,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-land/ssrd,CDS,False,False,,
+strd,None,None,reanalysis-cerra-land,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-land/strd,CDS,False,False,,
