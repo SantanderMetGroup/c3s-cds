@@ -138,7 +138,8 @@ def create_auxiliar_df(data):
             'start_file_exists': start_year_exists,
             'final_file_exists': end_year_exists,
             'earliest_date': earliest_dates,
-            'latest_date': latest_dates
+            'latest_date': latest_dates,
+            'script': row['script']
         }
 
         if row['dataset_type'] in ['projections']:
@@ -150,7 +151,7 @@ def create_auxiliar_df(data):
     df = pd.DataFrame(rows, columns=[
         'variable','model','experiment','dataset','dataset_type',
         'product_type','temporal_resolution','interpolation','data_path','origin_path',
-        'start_file_exists','final_file_exists','earliest_date','latest_date'
+        'start_file_exists','final_file_exists','earliest_date','latest_date','script'
     ])
     return df, row['dataset_type']
 
@@ -178,6 +179,8 @@ def process_csv_file(file_path, type_data):
     for ind in df_final.index:
         for col in df_final.columns:
             if dataset_type in ["reanalysis"]:
+                logging.info(f"Processing variable {col[0]} for reanalysis dataset {project}")
+                logging.info(f"aux_df: {aux_df}")
                 if aux_df.loc[aux_df['variable']==col[0]]['start_file_exists'].squeeze()==True and \
                    aux_df.loc[aux_df['variable']==col[0]]['final_file_exists'].squeeze()==True:
                     value=0
@@ -189,8 +192,9 @@ def process_csv_file(file_path, type_data):
 
     # Guardar CSV en carpeta catalogues
     aux_df.to_csv(f"catalogues/{project}_{type_data}_catalogue.csv", index=False)
-    # Generar imagen
-    plot2(df_final, varss, project, scess, list_values=list(load_values_dict().keys()))
+    # Generar imagen de las descargas
+    if type_data == "raw":
+        plot2(df_final, varss, project, scess, list_values=list(load_values_dict().keys()))
 
 # ---------------- Main ----------------
 def main():

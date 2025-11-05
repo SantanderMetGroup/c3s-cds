@@ -1,5 +1,5 @@
-variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
-t2m,None,None,reanalysis-cerra-single-levels,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-single-levels/t2m,CDS,False,False,,
-r2,None,None,reanalysis-cerra-single-levels,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-single-levels/r2,CDS,False,False,,
-si10,None,None,reanalysis-cerra-single-levels,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-single-levels/si10,CDS,False,False,,
-ssrd,None,None,reanalysis-cerra-single-levels,reanalysis,raw,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/reanalysis-cerra-single-levels/ssrd,CDS,False,False,,
+variable,model,experiment,dataset,dataset_type,product_type,temporal_resolution,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date,script
+t2m,None,None,reanalysis-cerra-single-levels,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/hourly/native/t2m,CDS,True,True,198801,201712,scripts/reanalysis-cerra-single-levels.py
+r2,None,None,reanalysis-cerra-single-levels,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/hourly/native/r2,CDS,True,True,198801,201712,scripts/reanalysis-cerra-single-levels.py
+si10,None,None,reanalysis-cerra-single-levels,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/hourly/native/si10,CDS,True,True,198801,201712,scripts/reanalysis-cerra-single-levels.py
+ssrd,None,None,reanalysis-cerra-single-levels,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-single-levels/hourly/native/ssrd,CDS,True,True,198801,201712,scripts/reanalysis-cerra-single-levels.py
