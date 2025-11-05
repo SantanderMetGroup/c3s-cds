@@ -12,7 +12,7 @@ The environment is the one used in the c3s-atlas user tools: https://github.com/
 |  [scripts/download](https://github.com/SantanderMetGroup/c3s-cds/tree/main/scripts/download) | 	Python scripts to download data from the CDS.
 | [scripts/standardization](https://github.com/SantanderMetGroup/c3s-cds/tree/main/scripts/standardization) |  Python recipes to standardize the variables.
 | [scripts/derived](https://github.com/SantanderMetGroup/c3s-cds/tree/main/scripts/derived) |  Python recipes to calculate derived products from the variables.
-| [scripts/interpolation](https://github.com/SantanderMetGroup/c3s-cds/tree/main/scripts/interpolation) |  Python recipes to interpolate data.
+| [scripts/interpolation](https://github.com/SantanderMetGroup/c3s-cds/tree/main/scripts/interpolation) |  Python recipes to interpolate data using reference grids.
 | [scripts/catalogue](https://github.com/SantanderMetGroup/c3s-cds/tree/main/scripts/catalogue) |  Python recipes to produce the catalogues of downloaded data.
 | [catalogues](https://github.com/SantanderMetGroup/c3s-cds/tree/main/catalogues) |  	CSV catalogues of datasets consolidated in Lustre or GPFS. The catalogues are updated through a nightly CI job.
 
