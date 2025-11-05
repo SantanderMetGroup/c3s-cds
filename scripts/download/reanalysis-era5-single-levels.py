@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../utilities')
 from utils import download_files
 
 
@@ -54,7 +56,7 @@ def get_output_filename(row,dataset,year):
 
 def main():
     dataset="reanalysis-era5-single-levels"
-    variables_file_path = f"../requests/{dataset}.csv"
+    variables_file_path = f"../../requests/{dataset}.csv"
     download_files(dataset, variables_file_path, create_request, get_output_filename)
 
 if __name__ == "__main__":

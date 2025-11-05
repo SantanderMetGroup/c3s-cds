@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 import logging
 import glob
 import sys
-sys.path.append('../scripts')
+sys.path.append('../utilities')
 from utils import build_output_path, load_output_path_from_row
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Crear carpetas si no existen
-os.makedirs("catalogues", exist_ok=True)
-os.makedirs("images", exist_ok=True)
+# Crear carpetas si no existen (in the catalogues directory at root level)
+os.makedirs("../../catalogues/catalogues", exist_ok=True)
+os.makedirs("../../catalogues/images", exist_ok=True)
 
 # ---------------- Funciones de visualización ----------------
 def set_xticks_and_labels(ax, mat, varss, scess):
@@ -77,7 +77,7 @@ def plot2(dataframe, varss, project, scess=['historical', 'rcp26', 'rcp45', 'rcp
 
     # Guardar imagen en carpeta images
     name_file = f"{project}_catalogue"
-    plt.savefig(f"images/{name_file}.png", bbox_inches='tight', dpi=300)
+    plt.savefig(f"../../catalogues/images/{name_file}.png", bbox_inches='tight', dpi=300)
     plt.close()
 
 # ---------------- Funciones de procesamiento ----------------
@@ -191,7 +191,7 @@ def process_csv_file(file_path, type_data):
             df_final.loc[ind,col] = value
 
     # Guardar CSV en carpeta catalogues
-    aux_df.to_csv(f"catalogues/{project}_{type_data}_catalogue.csv", index=False)
+    aux_df.to_csv(f"../../catalogues/catalogues/{project}_{type_data}_catalogue.csv", index=False)
     # Generar imagen de las descargas
     if type_data == "raw":
         plot2(df_final, varss, project, scess, list_values=list(load_values_dict().keys()))
@@ -200,7 +200,7 @@ def process_csv_file(file_path, type_data):
 def main():
     # Note: Interpolated data is now stored as 'derived' with non-native interpolation
     type_data_list = ["raw","derived"]
-    csv_directory = '../requests'
+    csv_directory = '../../requests'
 
     # Procesar CSVs individuales
     for type_data in type_data_list:
@@ -210,7 +210,7 @@ def main():
                 process_csv_file(file_path, type_data)
 
     # Concatenar todos los CSVs auxiliares
-    catalogue_folder = "catalogues"
+    catalogue_folder = "../../catalogues/catalogues"
     dataframes = []
     for filename in os.listdir(catalogue_folder):
         if filename.endswith('.csv') and filename != "all_catalogues.csv":

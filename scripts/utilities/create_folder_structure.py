@@ -141,8 +141,8 @@ def main():
     parser.add_argument(
         '--requests-dir',
         type=str,
-        default='../requests',
-        help='Path to the requests directory (default: ../requests)'
+        default='../../requests',
+        help='Path to the requests directory (default: ../../requests)'
     )
     
     args = parser.parse_args()

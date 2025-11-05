@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../utilities')
 from utils import download_files
 
 
@@ -47,7 +49,7 @@ def create_request(row,year):
 
 def main():
     dataset = "derived-era5-single-levels-daily-statistics"
-    variables_file_path = f"../requests/{dataset}.csv"
+    variables_file_path = f"../../requests/{dataset}.csv"
     download_files(dataset, variables_file_path, create_request, get_output_filename)
 
 if __name__ == "__main__":

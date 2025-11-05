@@ -6,14 +6,14 @@ import os
 import logging
 from pathlib import Path
 import sys
-sys.path.append('../scripts')
-from utils import load_input_path_from_row, load_output_path_from_row
+sys.path.append('../utilities')
+from utils import load_path_from_df, load_output_path_from_row
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def main():
     dataset="reanalysis-era5-single-levels"
-    variables_file_path = f"../requests/{dataset}.csv"
+    variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
     derived_variables = df_parameters[df_parameters['product_type'] == 'derived']['filename_variable']
     derived_variables_list = derived_variables.tolist()

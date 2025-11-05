@@ -1,5 +1,5 @@
 dataset,dataset_type,filename_variable,cds_request_variable,cds_years_start,cds_years_end,cds_product_type,cds_data_format,cds_download_format,cds_month,cds_day,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file
-reanalysis-era5-single-levels,reanalysis,u10,10m_u_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/reanalysis-era5-single-levels.py,raw,hourly,native,None
-reanalysis-era5-single-levels,reanalysis,v10,10m_v_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/reanalysis-era5-single-levels.py,raw,hourly,native,None
-reanalysis-era5-single-levels,reanalysis,sfcwind,None,2022,2024,None,None,None,None,None,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,derived/reanalysis-era5-single-levels.py,derived,daily,native,None
+reanalysis-era5-single-levels,reanalysis,u10,10m_u_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/download/reanalysis-era5-single-levels.py,raw,hourly,native,None
+reanalysis-era5-single-levels,reanalysis,v10,10m_v_component_of_wind,2022,2024,reanalysis,netcdf,unarchived,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/download/reanalysis-era5-single-levels.py,raw,hourly,native,None
+reanalysis-era5-single-levels,reanalysis,sfcwind,None,2022,2024,None,None,None,None,None,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/derived/reanalysis-era5-single-levels.py,derived,daily,native,None
 

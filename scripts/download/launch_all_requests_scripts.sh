@@ -9,10 +9,11 @@
 #SBATCH --time=2:00:00
 
 # Get all unique script paths from all requests/*.csv files
-SCRIPTS=$(awk -F',' 'NR>1 && $0!~/^$/ {for(i=1;i<=NF;i++) if($i ~ /scripts\// || $i ~ /derived\// || $i ~ /interpolation\//) print $i}' requests/*.csv | sort | uniq)
+# Now scripts are in scripts/download/, scripts/derived/, scripts/interpolation/
+SCRIPTS=$(awk -F',' 'NR>1 && $0!~/^$/ {for(i=1;i<=NF;i++) if($i ~ /scripts\//) print $i}' ../../requests/*.csv | sort | uniq)
 
 # Directory for per-run logs
-LOG_DIR=logs
+LOG_DIR=../../logs
 mkdir -p "$LOG_DIR"
 
 source ~/.bashrc
@@ -26,10 +27,10 @@ python -c "import sys; assert sys.prefix and 'c3s-atlas' in sys.prefix" 2>/dev/n
 }
 
 for script in $SCRIPTS; do
-    if [[ -f "$script" ]]; then
+    if [[ -f "../../$script" ]]; then
         echo "Launching SLURM job for $script on node wn54"
         base=$(basename "$script" .py)
-        script_dir=$(dirname "$script")
+        script_dir=$(dirname "../../$script")
         script_file=$(basename "$script")
         out_file="$LOG_DIR/${base}-%j-%s.out"
         err_file="$LOG_DIR/${base}-%j-%s.err"

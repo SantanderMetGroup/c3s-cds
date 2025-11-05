@@ -6,7 +6,7 @@ import os
 import pandas as pd
 from pathlib import Path
 import sys
-sys.path.append('../scripts')
+sys.path.append('../utilities')
 from utils import load_input_path_from_row, load_output_path_from_row
 
 def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
@@ -33,7 +33,7 @@ def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
 
 def main():
     dataset="reanalysis-cerra-single-levels"
-    variables_file_path = f"../requests/{dataset}.csv"
+    variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
     
     # Load the reference grid file from the first interpolated row
