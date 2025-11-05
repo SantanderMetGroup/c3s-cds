@@ -5,13 +5,13 @@ from utils import download_files
 
 
 
-def get_output_filename(row,dataset,year):
+def get_output_filename(row,dataset):
 
     var=row["filename_variable"]
-    date=f"{year}"
+    date=f"{row["cds_years_start"]}-{row["cds_years_end"]}"
     return f"{var}_{dataset}_{date}.nc"
 
-def create_request(row,year):
+def create_request(row):
     var=row["cds_request_variable"]
     product_type=row["cds_product_type"]
     grid_resolution=row["cds_grid_resolution"]

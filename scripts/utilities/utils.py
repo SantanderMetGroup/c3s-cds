@@ -207,7 +207,7 @@ def load_path_from_df(df, variable_name, variable_column='filename_variable',
         # Return None if no matching variable is found
         return None
 
-def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func, monthly_request=False):
+def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func, monthly_request=False,year_request=True):
     """
     Download files for the specified variables and years.
 
@@ -252,7 +252,7 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                             logging.info(f"{path_file} already exists, skipping")
                             continue
                         futures.append(executor.submit(download_single_file, dataset, request, path_file))
-            else:
+            elif year_request:
                 for year in year_list:
                     request = create_request_func(row, year)
                     file = get_output_filename_func(row, dataset, year)
@@ -261,6 +261,14 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                         logging.info(f"{path_file} already exists, skipping")
                         continue
                     futures.append(executor.submit(download_single_file, dataset, request, path_file))
+            else:
+                request = create_request_func(row)
+                file = get_output_filename_func(row, dataset)
+                path_file = dest_dir / file
+                if path_file.exists():
+                    logging.info(f"{path_file} already exists, skipping")
+                    continue
+                futures.append(executor.submit(download_single_file, dataset, request, path_file))
 
             for future in futures:
                 try:
