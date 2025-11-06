@@ -36,8 +36,9 @@ def main():
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
     
-    mask_ref = (df_parameters['interpolation'] != 'native') & (df_parameters['product_type'] == 'derived')
-    interpolated_row = require_single_row(df_parameters, mask_ref, "interpolated/derived reference row")
+    #Take first row with interpolation not native and product_type derived as reference for loading the reference grid
+    interpolated_row = df_parameters[(df_parameters['interpolation'] != 'native') & (df_parameters['product_type'] == 'derived')].iloc[0]
+
     
     interpolation_file = interpolated_row.get('interpolation_file', 'land_sea_mask_0.0625degree.nc4')
     ds_ref=xr.open_dataset(f"/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/{interpolation_file}")

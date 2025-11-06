@@ -142,7 +142,7 @@ if __name__ == "__main__":
         mask_var = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'derived')
         var_row = require_single_row(df_parameters, mask_var, f"{var}/derived")
         # Use utility function to load input path
-        var_download_path = load_output_path_from_row(input_row], dataset)
+        var_download_path = load_output_path_from_row(input_row, dataset)
         var_files = np.sort(glob.glob(f"{var_download_path}/*.nc"))
         print(f"{var_download_path}/*.nc")
         logging.info(f"List of file variables: {var_files}")

@@ -19,9 +19,6 @@ def main():
     derived_variables_list = derived_variables.tolist()
     for var in derived_variables_list:
         logging.info(f"Calculating {var}")
-        mask_input = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'raw')
-        input_row = require_single_row(df_parameters, mask_input, f"{var}/raw")
-
         mask_var = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'derived')
         var_row = require_single_row(df_parameters, mask_var, f"{var}/derived")
         
@@ -52,7 +49,7 @@ def main():
                 ds_merge = xr.merge([ds_u, ds_v])
                 sfcwind = operations.sfcwind_from_u_v(ds_merge)
                 sfcwind_daily = operations.resample_to_daily(sfcwind,"valid_time")
-                
+
                 logging.info(f"Saving calculated sfcwind to {dest_dir}")
                 sfcwind_daily.to_netcdf(output_file)
 
