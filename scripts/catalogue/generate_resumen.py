@@ -1,21 +1,28 @@
 import os
 import pandas as pd
 
-# Carpeta donde están las imágenes
-images_folder = "images"
-# CSV con la información completa
-all_catalogues_csv = "catalogues/all_catalogues.csv"
-# Nombre del fichero Markdown
-md_file = "README.md"
+# Paths corrected to match produce_catalog.py output
+# produce_catalog.py saves images to ../../catalogues/images
+images_folder = "../../catalogues/images"
+# produce_catalog.py writes the concatenated CSV to ../../catalogues/catalogues/all_catalogues.csv
+all_catalogues_csv = "../../catalogues/catalogues/all_catalogues.csv"
+# Write the generated markdown into the catalogues folder
+md_file = "../../catalogues/README.md"
 
 with open(md_file, "w", encoding="utf-8") as f:
     f.write("# Catalogue Overview\n\n")
 
     # Añadir imágenes
-    image_files = sorted([img for img in os.listdir(images_folder) if img.endswith(".png")])
-    for img in image_files:
-        f.write(f"## {img.replace('_', ' ').replace('.png','')}\n\n")
-        f.write(f"![{img}]({images_folder}/{img})\n\n")
+    if os.path.exists(images_folder):
+        image_files = sorted([img for img in os.listdir(images_folder) if img.endswith(".png")])
+        for img in image_files:
+            title = img.replace('_', ' ').replace('.png','')
+            # Use relative path from the markdown file to the images
+            rel_path = os.path.relpath(os.path.join(images_folder, img), os.path.dirname(md_file))
+            f.write(f"## {title}\n\n")
+            f.write(f"![{img}]({rel_path})\n\n")
+    else:
+        f.write("No images folder found.\n\n")
 
     # Añadir la tabla final
     if os.path.exists(all_catalogues_csv):

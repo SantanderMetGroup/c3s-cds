@@ -29,3 +29,4 @@ dependencies:
       - ibicus
       - seaborn
       - tqdm
+      - git+https://github.com/ecmwf-projects/c3s-atlas.git

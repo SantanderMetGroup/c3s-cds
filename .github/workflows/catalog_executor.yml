@@ -28,10 +28,19 @@ jobs:
       - name: Run script
         shell: bash -l {0}
         run: |
-          JOB_ID=$(sbatch catalogues/catalog_executor.sh | grep -o '[0-9]\+')
+          # Ensure the script exists and is executable, then submit via SLURM
+          SCRIPT_PATH="scripts/catalogue/catalog_executor.sh"
+          if [ ! -f "$SCRIPT_PATH" ]; then
+            echo "ERROR: $SCRIPT_PATH not found"
+            ls -la scripts/catalogue || true
+            exit 1
+          fi
+          chmod +x "$SCRIPT_PATH" || true
+          JOB_ID=$(sbatch "$SCRIPT_PATH" | grep -o '[0-9]\+')
           echo "Job ID: $JOB_ID"
           echo "JOB_ID=$JOB_ID" >> $GITHUB_ENV
           echo "Esperando a que termine el job $JOB_ID..."
+          # Wait until the job disappears from the squeue
           while squeue -j $JOB_ID | grep -q $JOB_ID; do
             sleep 10
           done
