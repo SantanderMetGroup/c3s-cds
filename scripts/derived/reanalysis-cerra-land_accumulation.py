@@ -10,7 +10,7 @@ import calendar
 import sys
 from datetime import datetime
 sys.path.append('../utilities')
-from utils import load_path_from_df, load_output_path_from_row
+from utils import load_output_path_from_row, require_single_row
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -136,11 +136,13 @@ if __name__ == "__main__":
 
     for var in derived_variables_list:
         logging.info(f"Calculating {var}")
-        input_row = df_parameters[(df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'raw')]
+        mask_input = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'raw')
+        input_row = require_single_row(df_parameters, mask_input, f"{var}/raw")
 
-        var_row = df_parameters[(df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'derived')]
+        mask_var = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'derived')
+        var_row = require_single_row(df_parameters, mask_var, f"{var}/derived")
         # Use utility function to load input path
-        var_download_path = load_output_path_from_row(input_row.iloc[0], dataset)
+        var_download_path = load_output_path_from_row(input_row], dataset)
         var_files = np.sort(glob.glob(f"{var_download_path}/*.nc"))
         print(f"{var_download_path}/*.nc")
         logging.info(f"List of file variables: {var_files}")
@@ -151,11 +153,11 @@ if __name__ == "__main__":
             date_str = basename.split('_')[-1].replace(".nc","")  
             date_obj = datetime.strptime(date_str, "%Y%m")
             year = date_obj.year
-            logging.info(f"Processing year: {year} and end year: {var_row.cds_years_end.iloc[0]}")
-            if year> var_row.cds_years_end.iloc[0]:
+            logging.info(f"Processing year: {year} and end year: {var_row.cds_years_end}")
+            if year > var_row.cds_years_end:
                 logging.info("Skipping file as it is after the end year")
                 continue
-            dest_dir = load_output_path_from_row(var_row.iloc[0], dataset)
+            dest_dir = load_output_path_from_row(var_row, dataset)
             var_file = os.path.basename(file).replace(".nc", "_daily_accumulated.nc")
             output_file=Path(f"{dest_dir}/{var_file}")
             logging.info(f"Saving calculated {var} to {dest_dir}")

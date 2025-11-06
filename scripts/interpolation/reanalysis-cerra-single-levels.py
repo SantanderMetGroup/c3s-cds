@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 import sys
 sys.path.append('../utilities')
-from utils import load_input_path_from_row, load_output_path_from_row
+from utils import  load_output_path_from_row,require_single_row
 
 def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     """
@@ -36,8 +36,9 @@ def main():
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
     
-    # Load the reference grid file from the first interpolated row
-    interpolated_row = df_parameters[(df_parameters['interpolation'] != 'native') & (df_parameters['product_type'] == 'derived')].iloc[0]
+    mask_ref = (df_parameters['interpolation'] != 'native') & (df_parameters['product_type'] == 'derived')
+    interpolated_row = require_single_row(df_parameters, mask_ref, "interpolated/derived reference row")
+    
     interpolation_file = interpolated_row.get('interpolation_file', 'land_sea_mask_0.0625degree.nc4')
     ds_ref=xr.open_dataset(f"/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/{interpolation_file}")
 
@@ -50,7 +51,8 @@ def main():
         ds_variable=row["filename_variable"]
         
         # Use utility function to load input path (from raw data)
-        raw_row = df_parameters[(df_parameters['filename_variable'] == ds_variable) & (df_parameters['product_type'] == 'raw')].iloc[0]
+        mask_raw = (df_parameters['filename_variable'] == ds_variable) & (df_parameters['product_type'] == 'raw')
+        raw_row = require_single_row(df_parameters, mask_raw, f"{ds_variable}/raw")
         orig_dir = load_output_path_from_row(raw_row, dataset)
         
         # Use utility function to load output path

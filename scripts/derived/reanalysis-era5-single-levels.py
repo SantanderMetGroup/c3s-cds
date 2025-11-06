@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 import sys
 sys.path.append('../utilities')
-from utils import load_path_from_df, load_output_path_from_row
+from utils import  load_output_path_from_row, require_single_row
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -19,27 +19,26 @@ def main():
     derived_variables_list = derived_variables.tolist()
     for var in derived_variables_list:
         logging.info(f"Calculating {var}")
-        input_row = df_parameters[(df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'raw')]
-        var_row = df_parameters[(df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'derived')]
+        mask_input = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'raw')
+        input_row = require_single_row(df_parameters, mask_input, f"{var}/raw")
+
+        mask_var = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'derived')
+        var_row = require_single_row(df_parameters, mask_var, f"{var}/derived")
         
         # Create a list of years from start to end
         year_list = list(range(var_row["cds_years_start"].squeeze() , var_row["cds_years_end"].squeeze()  + 1))
         for year in year_list:
 
-            if var == "sfcwind":
-                
-
-
-                input_row_u10 = df_parameters[(df_parameters['filename_variable'] == "u10") & (df_parameters['product_type'] == 'raw')]
-                input_row_v10 = df_parameters[(df_parameters['filename_variable'] == "v10") & (df_parameters['product_type'] == 'raw')]
+            if var == "sfcwind":               
+                input_row_u10 = require_single_row(df_parameters, (df_parameters['filename_variable'] == "u10") & (df_parameters['product_type'] == 'raw'), "u10/raw")
+                input_row_v10 = require_single_row(df_parameters, (df_parameters['filename_variable'] == "v10") & (df_parameters['product_type'] == 'raw'), "v10/raw")
                 # Use utility function to load input paths
-                u10_download_path = load_output_path_from_row(input_row_u10.iloc[0], dataset)
+                u10_download_path = load_output_path_from_row(input_row_u10, dataset)
                 u_10_file = glob.glob(f"{u10_download_path}/*{year}*.nc")[0]
-                v10_download_path = load_output_path_from_row(input_row_v10.iloc[0], dataset)
+                v10_download_path = load_output_path_from_row(input_row_v10, dataset)
                 v_10_file = glob.glob(f"{v10_download_path}/*{year}*.nc")[0]
-
                 # Use utility function to build output path
-                dest_dir = load_output_path_from_row(var_row.iloc[0], dataset)
+                dest_dir = load_output_path_from_row(var_row, dataset)
                 os.makedirs(dest_dir, exist_ok=True)
                 sfcwind_file = os.path.basename(u_10_file).replace("u10", "sfcwind")
                 output_file=Path(f"{dest_dir}/{sfcwind_file}")
@@ -54,7 +53,6 @@ def main():
                 sfcwind = operations.sfcwind_from_u_v(ds_merge)
                 sfcwind_daily = operations.resample_to_daily(sfcwind,"valid_time")
                 
-
                 logging.info(f"Saving calculated sfcwind to {dest_dir}")
                 sfcwind_daily.to_netcdf(output_file)
 

@@ -280,3 +280,11 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                     future.result()
                 except Exception as e:
                     logging.error(f"Failed to download file: {e}")
+
+def require_single_row(df, mask, desc=None):
+    matches = df[mask]
+    if matches.shape[0] == 0:
+        raise KeyError(f"No row found{': ' + desc if desc else ''}")
+    if matches.shape[0] > 1:
+        raise ValueError(f"{matches.shape[0]} rows found{': ' + desc if desc else ''} — expected exactly 1")
+    return matches.iloc[0]
