@@ -1,2 +1,7 @@
+<<<<<<< HEAD
+variable,model,experiment,dataset,dataset_type,product_type,temporal_resolution,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date,script
+sfcwind,None,None,reanalysis-era5-single-levels,reanalysis,derived,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/derived/reanalysis-era5-single-levels/daily/native/sfcwind,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/daily/native/sfcwind,True,True,2022,2024,scripts/derived/reanalysis-era5-single-levels.py
+=======
 variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
 sfcwind,None,None,reanalysis-era5-single-levels,reanalysis,derived,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/derived/reanalysis-era5-single-levels/sfcwind,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-era5-single-levels/sfcwind,False,False,,
+>>>>>>> 78ace9e181fc202949816aef1d8a9505b407cf13

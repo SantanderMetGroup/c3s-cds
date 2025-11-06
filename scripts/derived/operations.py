@@ -35,27 +35,3 @@ def resample_to_daily(ds, time_dim='time', agg_freq='1D', agg_func='mean'):
         raise ValueError("Invalid aggregation function. Choose 'mean', 'sum', 'max', or 'min'.")
 
     return resampled
-
-def load_path_from_df(df, variable_name, variable_column='filename_variable', path_column='input_path', product_type="raw"):
-    """
-    Load the path for a given variable from a df file.
-
-    Parameters:
-    - df
-    - variable_name: The variable name to search for in the CSV.
-    - variable_column: The column name in the CSV that contains variable names. Default is 'filename_variable'.
-    - path_column: The column name in the CSV that contains paths. Default is 'path_download'.
-
-    Returns:
-    - The path corresponding to the variable, or None if the variable is not found.
-    """
-
-    # Filter the DataFrame to find the row with the specified variable
-    filtered_df = df[(df[variable_column] == variable_name) & (df['product_type'] == product_type)]
-    # Check if any row matches the variable
-    if not filtered_df.empty:
-        # Return the path from the first matching row
-        return filtered_df[path_column].iloc[0]
-    else:
-        # Return None if no matching variable is found
-        return None

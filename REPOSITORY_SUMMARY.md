@@ -18,52 +18,52 @@ The repository automates the process of:
   - Which variables to download
   - Year ranges
   - CDS API parameters
-  - Output paths
-  - Interpolation reference grid (if needed)
+  - Output paths and temporal resolution
+  - Interpolation method (native, gr006, etc.)
 
 ### 2️⃣ **Download Phase (Raw Data)**
 ```
-requests/*.csv → scripts/*.py → CDS API → NetCDF files
+requests/*.csv → scripts/download/*.py → CDS API → NetCDF files
 ```
 - Scripts read CSVs
 - Create CDS API requests
 - Download raw data as NetCDF files
-- Files saved as: `{var}_{dataset}_{year}.nc`
+- Files saved to: `{base}/{product_type}/{dataset}/{temporal_resolution}/{interpolation}/{variable}/`
 
 ### 3️⃣ **Derivation Phase**
 ```
-Raw NetCDF → derived/*.py → Derived NetCDF
+Raw NetCDF → scripts/derived/*.py → Derived NetCDF
 ```
 - Scripts identify "derived" variables from CSVs
 - Load necessary raw data files
 - Perform calculations (e.g., wind speed from components)
 - Resample to daily values if needed
-- Save derived variables
+- Save derived variables with temporal resolution metadata
 
 ### 4️⃣ **Interpolation Phase**
 ```
-Raw/Derived NetCDF → interpolation/*.py → Interpolated NetCDF
+Raw NetCDF → scripts/interpolation/*.py → Interpolated NetCDF (stored as derived)
 ```
-- Scripts identify "interpolated" variables from CSVs
-- Load reference grid specified in the `interpolation` column
+- Scripts identify variables needing interpolation from CSVs
+- Load reference grid specified in the `interpolation_file` column
 - Apply conservative interpolation to regrid data
-- Save interpolated variables to specified output path
+- Save to derived directory with interpolation method (e.g., gr006)
 
 ### 5️⃣ **Standardization Phase**
 ```
-Derived/Raw NetCDF → standardization/*.py → Standardized NetCDF
+Derived/Raw NetCDF → scripts/standardization/*.py → Standardized NetCDF
 ```
 - Apply unit conversions
 - Update metadata attributes
 - Ensure CF convention compliance
 
-### 6️⃣ **Cataloguing raw downloaded data phase**
+### 6️⃣ **Cataloguing Phase**
 ```
-All NetCDF files → catalogues/produce_catalog.py → CSV + PDF reports
+All NetCDF files → scripts/catalogue/produce_catalog.py → CSV + PDF reports
 ```
-- Scan all raw output directories
+- Scan all output directories
 - Check file existence for each year
-- Generate availability reports
+- Generate availability reports with temporal resolution
 - Create visual heatmaps
 - Publish via GitHub Actions nightly
 
@@ -79,80 +79,81 @@ Contains CSV files that define **what data to download**
   - `filename_variable`: Variable name for saved files
   - `cds_request_variable`: Variable name in CDS API
   - `cds_years_start/end`: Year range to download
-  - `product_type`: `raw`, `derived`, or `interpolated`
-  - `interpolation`: Reference grid filename (e.g., `land_sea_mask_0.0625degree.nc4`)
-  - `output_path`: Where to save the data
+  - `product_type`: `raw` or `derived` (interpolated data is stored as derived)
+  - `temporal_resolution`: hourly, daily, 3hourly, 6hourly, monthly
+  - `interpolation`: native (non-interpolated) or grid specification (e.g., gr006)
+  - `interpolation_file`: Reference grid file for interpolation (if needed)
+  - `output_path`: Base directory for saving data
   - `script`: Which Python script handles this dataset
 
 **Example:** A row specifying to download u10 (10m wind u-component) for years 2022-2024 from ERA5.
 
 ---
 
-### ⬇️ **scripts/**
+### 📂 **scripts/**
 
-Python scripts that **download data from CDS**
+Organized directory containing all Python scripts:
+
+#### **scripts/download/**
+Scripts that **download data from CDS**
 - One script per CDS catalogue (e.g., `reanalysis-era5-single-levels.py`)
-- Uses `utils.py` which provides:
-  - `download_single_file()`: Downloads individual files via CDS API
-  - `download_files()`: Orchestrates parallel downloads based on CSV configuration
 - Reads request CSVs and creates API requests
-- Saves files with format: `{variable}_{dataset}_{year}.nc`
+- Downloads files to directory structure: `{base}/{product_type}/{dataset}/{temporal_resolution}/{interpolation}/{variable}/`
+- Skip files that already exist
 
-**Workflow:**
-1. Read CSV from `requests/` directory
-2. For each variable marked as "raw", create CDS API requests
-3. Download files to specified output path
-4. Skip files that already exist
+#### **scripts/utilities/**
+Centralized utility functions
+- `utils.py`: Core functions for path construction and file downloads
+  - `build_output_path()`: Constructs directory paths with temporal resolution and interpolation
+  - `load_output_path_from_row()`: Extracts output path from CSV row
+  - `load_input_path_from_row()`: Extracts input path from CSV row
+  - `load_path_from_df()`: Lookup path for a variable in DataFrame
+  - `download_files()`: Orchestrates parallel downloads based on CSV configuration
+- `create_folder_structure.py`: Creates complete directory structure from CSVs without downloading
 
----
-
-### 🔬 **derived/**
-
-Python scripts that **calculate derived variables** from raw data
+#### **scripts/derived/**
+Scripts that **calculate derived variables** from raw data
 - Example: `reanalysis-era5-single-levels.py` calculates:
   - `sfcwind` (wind speed) from `u10` and `v10` components using: `sfcwind = √(u10² + v10²)`
 - Uses `operations.py` which provides utility functions:
   - `sfcwind_from_u_v()`: Calculate wind speed from components
   - `resample_to_daily()`: Aggregate hourly data to daily statistics
-  - `load_path_from_df()`: Load file paths from configuration
 
 **Workflow:**
 1. Read CSV to identify variables marked as "derived"
 2. Load required raw data files
 3. Apply mathematical operations
 4. Resample to daily values if needed
-5. Save derived variables
+5. Save derived variables with new temporal resolution
 
----
-
-### 🌐 **interpolation/**
-
-Python scripts that **interpolate datasets to reference grids**
+#### **scripts/interpolation/**
+Scripts that **interpolate datasets to reference grids**
 - Example: `reanalysis-cerra-single-levels.py` interpolates CERRA data
-- Reference grid is specified in the `interpolation` column of request CSVs
+- Reference grid specified in `interpolation_file` column of request CSVs
 - Uses conservative interpolation method via xESMF
-- CERRA is the reference example for future dataset updates
-- Reference grids will be moved to a `resources/` folder in future updates
+- Saves to derived directory with interpolation method identifier (e.g., gr006)
 
 **Workflow:**
-1. Read CSV to identify variables marked as "interpolated"
-2. Load reference grid from specified file (e.g., `land_sea_mask_0.0625degree.nc4`)
+1. Read CSV to identify variables needing interpolation (interpolation != 'native')
+2. Load reference grid from specified file
 3. Apply conservative_normed interpolation to regrid data
-4. Save interpolated variables to output path
-5. Skip files that already exist
+4. Save to: `{base}/derived/{dataset}/{temporal_resolution}/{interpolation}/{variable}/`
 
----
-
-### 📏 **standardization/**
-
-Python scripts that **standardize variables** to CF conventions
+#### **scripts/standardization/**
+Scripts that **standardize variables** to CF conventions
 - Example: `derived-era5-single-levels-daily-statistics.py` contains functions like:
   - `tp()`: Convert precipitation from m/day to kg/m²/s (flux)
   - `e()`: Convert evaporation with proper units and attributes
   - `ssrd()`: Convert solar radiation from J/m² to W/m²
-- Updates variable attributes (units, standard_name, long_name, etc.)
 
-**Purpose:** Ensure data complies with Climate and Forecast (CF) metadata conventions and CMIP6 standards for interoperability.
+#### **scripts/catalogue/**
+Scripts that **generate visual catalogues** of available data
+- `produce_catalog.py`: Scans directories, creates CSV catalogues showing data availability, generates heatmap visualizations
+- `generate_resumen.py`: Creates summary reports
+- Output saved to `catalogues/catalogues/` and `catalogues/images/`
+
+#### **scripts/notebooks/**
+Jupyter notebooks for **exploration and testing**
 
 ---
 
@@ -181,28 +182,31 @@ JSON files documenting **metadata and provenance** for each variable
 
 ### 📊 **catalogues/**
 
-Scripts that **generate visual catalogues** of available data
-- `produce_catalog.py` / `produce_catalog_v2.py`:
-  - Scans output directories for downloaded files
-  - Checks which years exist for each variable
-  - Creates CSV catalogues showing data availability
-  - Generates heatmap visualizations (PDF images)
-- `generate_resumen.py`: Creates summary reports
+Output directory for **catalogues and visualizations**
+- `catalogues/`: CSV files listing all variables, datasets, date ranges, file paths
+- `images/`: PDF heatmaps showing data availability (green=downloaded, orange=partial, red=missing)
 - Updated nightly via GitHub Actions CI/CD
-
-**Output:**
-- CSV files: Lists all variables, datasets, date ranges, file paths
-- PDF heatmaps: Visual representation of data availability (green=downloaded, orange=partial, red=missing)
-
----
-
-### 📓 **notebooks/**
-
-Jupyter notebooks for **exploration and testing**
 
 ---
 
 ## Technical Details
+
+### Directory Structure
+**Enhanced structure with temporal resolution and interpolation metadata:**
+
+```
+{base}/{product_type}/{dataset}/{temporal_resolution}/{interpolation}/{variable}/
+```
+
+Where:
+- `product_type`: `raw` or `derived` (interpolated data stored as derived)
+- `temporal_resolution`: hourly, daily, 3hourly, 6hourly, monthly
+- `interpolation`: native (non-interpolated) or grid specification (e.g., gr006)
+
+**Examples:**
+- Raw hourly ERA5: `/lustre/.../raw/reanalysis-era5-single-levels/hourly/native/u10/`
+- Derived daily wind: `/lustre/.../derived/reanalysis-era5-single-levels/daily/native/sfcwind/`
+- Interpolated CERRA: `/lustre/.../derived/reanalysis-cerra-single-levels/3hourly/gr006/t2m/`
 
 ### File Naming Convention
 **Format:** `{variable}_{dataset}_{date}.nc`
@@ -220,7 +224,7 @@ Jupyter notebooks for **exploration and testing**
   - `catalog_executor.yml`: Runs nightly to update catalogues
   - `run_all_requests_scripts.yml`: Can trigger download scripts
 - **SLURM scripts:**
-  - `launch_all_requests_scripts.sh`: Batch job launcher for HPC environments
+  - `scripts/download/launch_all_requests_scripts.sh`: Batch job launcher for HPC environments
   - Designed for cluster computing with job scheduling
 
 ## Supported Datasets
@@ -234,24 +238,29 @@ Jupyter notebooks for **exploration and testing**
 
 ### To download ERA5 data:
 1. Edit `requests/reanalysis-era5-single-levels.csv` to specify years and variables
-2. Run: `python scripts/reanalysis-era5-single-levels.py`
-3. Raw data downloads to specified `output_path`
+2. Run: `python scripts/download/reanalysis-era5-single-levels.py`
+3. Raw data downloads to: `{base}/raw/{dataset}/{temporal_resolution}/native/{variable}/`
 
 ### To calculate derived variables:
 1. Ensure raw data is downloaded
-2. Run: `python derived/reanalysis-era5-single-levels.py`
-3. Derived variables saved to derived directory
+2. Run: `python scripts/derived/reanalysis-era5-single-levels.py`
+3. Derived variables saved to: `{base}/derived/{dataset}/{temporal_resolution}/native/{variable}/`
 
 ### To interpolate data:
 1. Ensure raw data is downloaded
-2. Specify reference grid in the `interpolation` column of request CSV
-3. Run: `python interpolation/reanalysis-cerra-single-levels.py`
-4. Interpolated data saved to specified output path
+2. Specify reference grid in the `interpolation_file` column of request CSV
+3. Run: `python scripts/interpolation/reanalysis-cerra-single-levels.py`
+4. Interpolated data saved to: `{base}/derived/{dataset}/{temporal_resolution}/{grid_spec}/{variable}/`
+
+### To create folder structure:
+1. Run: `python scripts/utilities/create_folder_structure.py --dry-run` (preview)
+2. Run: `python scripts/utilities/create_folder_structure.py` (create)
+3. Creates all directories based on CSV configurations without downloading
 
 ### To update catalogues:
-1. Run: `python catalogues/produce_catalog.py`
-2. Generates CSV catalogues and PDF visualizations
-3. Shows data availability status
+1. Run: `python scripts/catalogue/produce_catalog.py`
+2. Generates CSV catalogues and PDF visualizations in `catalogues/`
+3. Shows data availability status with temporal resolution metadata
 
 ## Integration
 This repository is part of the **C3S Atlas** ecosystem and uses the same conda environment. It serves as the data acquisition and preprocessing layer, providing standardized climate data for downstream analysis tools.
