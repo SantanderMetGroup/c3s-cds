@@ -166,7 +166,7 @@ def process_csv_file(file_path, type_data):
     aux_df, dataset_type = create_auxiliar_df(data)
     project = os.path.basename(file_path).split('.')[0]
 
-    if dataset_type in ["reanalysis"]:
+    if dataset_type in ["reanalysis","observation"]:
         simss = [project]
         scess = ["historical"]
     else:
@@ -178,9 +178,8 @@ def process_csv_file(file_path, type_data):
 
     for ind in df_final.index:
         for col in df_final.columns:
-            if dataset_type in ["reanalysis"]:
+            if dataset_type in ["reanalysis","observation"]:
                 logging.info(f"Processing variable {col[0]} for reanalysis dataset {project}")
-                logging.info(f"aux_df: {aux_df}")
                 if aux_df.loc[aux_df['variable']==col[0]]['start_file_exists'].squeeze()==True and \
                    aux_df.loc[aux_df['variable']==col[0]]['final_file_exists'].squeeze()==True:
                     value=0

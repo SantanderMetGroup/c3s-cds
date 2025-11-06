@@ -1,13 +1,5 @@
-<<<<<<< HEAD
 variable,model,experiment,dataset,dataset_type,product_type,temporal_resolution,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date,script
-tp,None,None,reanalysis-cerra-land,reanalysis,raw,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/daily/native/tp,CDS,True,True,198408.0,202106.0,scripts/reanalysis-cerra-land-single-levels.py
-eva,None,None,reanalysis-cerra-land,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/hourly/native/eva,CDS,True,True,198501.0,202109.0,scripts/reanalysis-cerra-land-single-levels.py
-ssrd,None,None,reanalysis-cerra-land,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/hourly/native/ssrd,CDS,True,False,198501.0,201006.0,scripts/reanalysis-cerra-land-single-levels.py
-strd,None,None,reanalysis-cerra-land,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/hourly/native/strd,CDS,False,False,,,scripts/reanalysis-cerra-land-single-levels.py
-=======
-variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
-tp,None,None,reanalysis-cerra-land,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/tp,CDS,False,False,,
-eva,None,None,reanalysis-cerra-land,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/eva,CDS,False,False,,
-ssrd,None,None,reanalysis-cerra-land,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/ssrd,CDS,False,False,,
-strd,None,None,reanalysis-cerra-land,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/strd,CDS,False,False,,
->>>>>>> 78ace9e181fc202949816aef1d8a9505b407cf13
+tp,None,None,reanalysis-cerra-land,reanalysis,raw,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/daily/native/tp,CDS,True,True,198408.0,202106.0,scripts/download/reanalysis-cerra-land-single-levels.py
+eva,None,None,reanalysis-cerra-land,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/hourly/native/eva,CDS,True,True,198501.0,202109.0,scripts/download/reanalysis-cerra-land-single-levels.py
+ssrd,None,None,reanalysis-cerra-land,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/hourly/native/ssrd,CDS,True,False,198501.0,201908.0,scripts/download/reanalysis-cerra-land-single-levels.py
+strd,None,None,reanalysis-cerra-land,reanalysis,raw,hourly,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/reanalysis-cerra-land/hourly/native/strd,CDS,False,False,,,scripts/download/reanalysis-cerra-land-single-levels.py
