@@ -1,9 +1,9 @@
 variable,model,experiment,dataset,dataset_type,product_type,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date
-t2m,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2m,CDS,True,True,1940,2024
-t2mx,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2mx,CDS,True,True,1940,2024
-t2mn,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2mn,CDS,True,True,1940,2024
-e,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/e,CDS,True,True,1940,2024
-tp,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/tp,CDS,True,True,1940,2024
-d2m,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/d2m,CDS,True,True,1940,2024
-sp,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/sp,CDS,True,True,1940,2024
-ssrd,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/ssrd,CDS,True,True,1940,2024
+t2m,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2m,CDS,False,False,,
+t2mx,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2mx,CDS,False,False,,
+t2mn,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/t2mn,CDS,False,False,,
+e,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/e,CDS,False,False,,
+tp,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/tp,CDS,False,False,,
+d2m,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/d2m,CDS,False,False,,
+sp,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/sp,CDS,False,False,,
+ssrd,None,None,derived-era5-single-levels-daily-statistics,reanalysis,raw,,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/ssrd,CDS,False,False,,
