@@ -3,8 +3,6 @@ import xarray as xr
 import numpy as np
 from thermofeel.thermofeel import calculate_relative_humidity_percent
 
-# Import the original computation (the function lives in the same package)
-
 
 def rh_from_thermofeel(ds: xr.Dataset, td_var: str, t2_var: str) -> xr.Dataset:
     """
@@ -47,9 +45,10 @@ def rh_from_thermofeel(ds: xr.Dataset, td_var: str, t2_var: str) -> xr.Dataset:
         dask="parallelized",
         output_dtypes=[float],
     )
-
+    # Ensure that RH values are within physical bounds [0, 100]
+    rh_da = rh_da.clip(min=0.0, max=100.0)
     # Name and attributes for the output
-    rh_da.name = "relative_humidity"
+    rh_da.name = "hurs"
     rh_da.attrs["units"] = "%"
     rh_da.attrs["long_name"] = "Relative Humidity"
 
@@ -57,7 +56,7 @@ def rh_from_thermofeel(ds: xr.Dataset, td_var: str, t2_var: str) -> xr.Dataset:
     ds_out = ds.copy()
 
     # Add the new variable and remove the original ones
-    ds_out["relative_humidity"] = rh_da
+    ds_out["hurs"] = rh_da
     ds_out = ds_out.drop_vars([td_var, t2_var])
 
     return ds_out

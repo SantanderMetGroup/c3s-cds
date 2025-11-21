@@ -165,11 +165,15 @@ if __name__ == "__main__":
             if output_file.exists():
                 logging.info(f"File {output_file} already exists. Skipping...")
                 continue
-            next_file=var_files[i+1] if i+1 < len(var_files) else None
-            logging.info(f"Processing file {file} and next file {next_file}")
+            if i+2 < len(var_files):
+                next_file=var_files[i+1]
+                logging.info(f"Processing file {file} and next file {next_file}")
+                check_time_gap(file, next_file, expected_timestep='1h')
+                file_list=[file,next_file]
+            else:
+                file_list=[file]
 
-            check_time_gap(file, next_file, expected_timestep='1h')
-            ds_var = xr.open_mfdataset([file,next_file],concat_dim='valid_time', combine='nested') 
+            ds_var = xr.open_mfdataset(file_list,concat_dim='valid_time', combine='nested') 
             ds_accumulated=accumulation(ds_var,var)
             first_month_data = get_first_month_accumulated(ds_accumulated)
 
