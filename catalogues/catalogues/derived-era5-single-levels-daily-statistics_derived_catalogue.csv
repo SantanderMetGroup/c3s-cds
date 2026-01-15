@@ -1,2 +1,0 @@
-variable,model,experiment,dataset,dataset_type,product_type,temporal_resolution,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date,script
-hurs,None,None,derived-era5-single-levels-daily-statistics,reanalysis,derived,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/derived/derived-era5-single-levels-daily-statistics/daily/native/hurs,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-era5-single-levels-daily-statistics/daily/native/hurs,True,True,1940,2024,scripts/derived/derived-era5-single-levels-daily-statistics.py
