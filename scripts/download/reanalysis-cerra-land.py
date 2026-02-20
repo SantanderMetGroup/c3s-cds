@@ -40,6 +40,10 @@ def create_request(row,year,month="all"):
     data_format=row["cds_data_format"]
     product_type=row["cds_product_type"]
     level_type=row["cds_level_type"]
+    soil_layers=row["cds_soil_layer"]
+
+
+        
     time,leadtime_hour=load_times(row)
 
 
@@ -72,6 +76,8 @@ def create_request(row,year,month="all"):
         "time":time,
         "leadtime_hour":leadtime_hour
     }
+    if soil_layers=="first_three_levels":
+        dict_request["soil_layer"]=["1","2","3"]
     if leadtime_hour==["None"]:
         del dict_request["leadtime_hour"]
     return dict_request

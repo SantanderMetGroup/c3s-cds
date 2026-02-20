@@ -1,8 +1,9 @@
 import datetime
 import warnings
+import json
 from pathlib import Path
 import cdsapi
-import os
+import xarray as xr
 import logging
 import yaml
 from concurrent.futures import ThreadPoolExecutor
@@ -13,6 +14,17 @@ from c3s_atlas.utils import (
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 warnings.filterwarnings("ignore")
+
+
+def load_derived_dependencies(dependencies_path: Path = None) -> dict:
+    """Load shared derived-variable dependencies from JSON."""
+    if dependencies_path is None:
+        dependencies_path = Path(__file__).resolve().parent.parent / "derived" / "derived_variable_dependencies.json"
+
+    with dependencies_path.open('r', encoding='utf-8') as file_handler:
+        dependencies = json.load(file_handler)
+
+    return dependencies if isinstance(dependencies, dict) else {}
 
 def read_from_yaml(file_path):
     """
@@ -210,6 +222,21 @@ def load_path_from_df(df, variable_name, variable_column='filename_variable',
         # Return None if no matching variable is found
         return None
 
+def is_valid_netcdf(path_file: Path) -> bool:
+    """Check if a NetCDF file is valid and can be opened."""
+    try:
+        with xr.open_dataset(path_file) as ds:
+            # Optionally, do a quick check to ensure there is data
+            if ds.dims:
+                return True
+            else:
+                logging.warning(f"{path_file} opened but has no dimensions.")
+                return False
+    except Exception as e:
+        logging.warning(f"Failed to open {path_file}: {e}")
+        return False
+
+
 def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func, monthly_request=False,year_request=True):
     """
     Download files for the specified variables and years.
@@ -251,9 +278,13 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                         request = create_request_func(row, year,month)
                         file = get_output_filename_func(row, dataset, year,month)
                         path_file = dest_dir / file
+                        # Check if file exists and is valid
                         if path_file.exists():
-                            logging.info(f"{path_file} already exists, skipping")
-                            continue
+                            if is_valid_netcdf(path_file):
+                                logging.info(f"{path_file} already exists and is valid, skipping")
+                                continue
+                            else:
+                                logging.warning(f"{path_file} exists but is corrupt, redownloading")
                         futures.append(executor.submit(download_single_file, dataset, request, path_file))
 
             elif year_request:
@@ -262,16 +293,22 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                     file = get_output_filename_func(row, dataset, year)
                     path_file = dest_dir / file
                     if path_file.exists():
-                        logging.info(f"{path_file} already exists, skipping")
-                        continue
+                        if is_valid_netcdf(path_file):
+                            logging.info(f"{path_file} already exists and is valid, skipping")
+                            continue
+                        else:
+                            logging.warning(f"{path_file} exists but is corrupt, redownloading")
                     futures.append(executor.submit(download_single_file, dataset, request, path_file))
             else:
                 request = create_request_func(row)
                 file = get_output_filename_func(row, dataset)
                 path_file = dest_dir / file
                 if Path(str(path_file).replace('zip','nc')).exists():
-                    logging.info(f"{path_file} already exists, skipping")
-                    continue
+                    if is_valid_netcdf(Path(str(path_file).replace('zip','nc'))):
+                        logging.info(f"{path_file} already exists and is valid, skipping")
+                        continue
+                    else:
+                        logging.warning(f"{path_file} exists but is corrupt, redownloading")
                 futures.append(executor.submit(download_single_file, dataset, request, path_file))
                 if path_file.suffix == '.zip':
                             futures.append(executor.submit(extract_zip_and_delete, path_file))

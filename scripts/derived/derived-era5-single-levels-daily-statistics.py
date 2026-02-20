@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 import sys
 sys.path.append('../utilities')
-from utils import  load_output_path_from_row, require_single_row
+from utils import load_output_path_from_row, require_single_row, load_derived_dependencies
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -15,6 +15,7 @@ def main():
     dataset="derived-era5-single-levels-daily-statistics"
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
+    derived_dependencies = load_derived_dependencies()
     derived_variables = df_parameters[df_parameters['product_type'] == 'derived']['filename_variable']
     derived_variables_list = derived_variables.tolist()
     logging.info(f"Derived variables to process: {derived_variables_list}")
@@ -27,9 +28,14 @@ def main():
         year_list = list(range(var_row["cds_years_start"].squeeze() , var_row["cds_years_end"].squeeze()  + 1))
         for year in year_list:
 
+            dependencies = derived_dependencies.get(var, [])
+            if not dependencies:
+                logging.warning(f"No dependencies declared for derived variable {var}. Skipping...")
+                continue
+
             if var == "hurs":               
-                input_row_d2m = require_single_row(df_parameters, (df_parameters['filename_variable'] == "d2m") & (df_parameters['product_type'] == 'raw'), "d2m/raw")
-                input_row_t2m = require_single_row(df_parameters, (df_parameters['filename_variable'] == "t2m") & (df_parameters['product_type'] == 'raw'), "t2m/raw")
+                input_row_d2m = require_single_row(df_parameters, (df_parameters['filename_variable'] == dependencies[0]) & (df_parameters['product_type'] == 'raw'), f"{dependencies[0]}/raw")
+                input_row_t2m = require_single_row(df_parameters, (df_parameters['filename_variable'] == dependencies[1]) & (df_parameters['product_type'] == 'raw'), f"{dependencies[1]}/raw")
                 # Use utility function to load input paths
                 d2m_download_path = load_output_path_from_row(input_row_d2m, dataset)
                 d2m_file = glob.glob(f"{d2m_download_path}/*{year}*.nc")[0]

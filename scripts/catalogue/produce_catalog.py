@@ -7,7 +7,7 @@ import logging
 import glob
 import sys
 sys.path.append('../utilities')
-from utils import build_output_path, load_output_path_from_row
+from utils import build_output_path, load_output_path_from_row, load_derived_dependencies
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -96,30 +96,40 @@ def get_earliest_and_latest_dates(directory):
         return None, None
     return min(dates), max(dates)
 
+def check_origin_path(row, data_path):
+    if row['input_path'] == "CDS":
+        return "CDS"
+
+    if row['product_type'] != 'derived':
+        return data_path
+    else:
+        dependencies = load_derived_dependencies().get(str(row['filename_variable']), [])
+        dependencies = [str(dep) for dep in dependencies] if isinstance(dependencies, list) else []
+
+        if not dependencies:
+            dependencies = [row['filename_variable']]
+
+        origin_paths = [
+            str(build_output_path(
+                row['input_path'],
+                row['dataset'],
+                'raw',
+                row['temporal_resolution'],
+                'native',
+                dependency
+            ))
+            for dependency in dependencies
+        ]
+        return ';'.join(origin_paths)
+
 def create_auxiliar_df(data):
     rows = []
     for _, row in data.iterrows():
         # Use utility function to build data_path
         data_path = str(load_output_path_from_row(row))
         
-        # Build origin_path
-        if row['input_path'] == "CDS":
-            origin_path = "CDS"
-        else:
-            # For derived data, origin is typically raw data with same temporal resolution
-            if row['product_type'] == 'derived':
-                origin_path = str(build_output_path(
-                    row['input_path'],
-                    row['dataset'],
-                    'raw',
-                    row['temporal_resolution'],
-                    'native',  # Origin is typically native (non-interpolated)
-                    row['filename_variable']
-                ))
-            else:
-                # For raw data, origin is the same as data_path
-                origin_path = data_path
-        
+
+        origin_path=check_origin_path(row,data_path)
         start_year_exists = check_nc_file_for_year(data_path, row['cds_years_start'])
         end_year_exists = check_nc_file_for_year(data_path, row['cds_years_end'])
         earliest_dates, latest_dates = get_earliest_and_latest_dates(data_path)
