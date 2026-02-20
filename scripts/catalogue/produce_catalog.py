@@ -86,14 +86,20 @@ def check_nc_file_for_year(directory, year):
     return len(glob.glob(pattern)) > 0
 
 def get_earliest_and_latest_dates(directory):
+    logging.info(f"Getting earliest and latest dates from directory: {directory}")
     nc_files = glob.glob(os.path.join(directory, '*.nc'))
     dates = []
     for file in nc_files:
         last_part = os.path.basename(file).split('_')[-1].replace('.nc','')
-        if last_part.isdigit():
-            dates.append(int(last_part))
+        date_part= os.path.basename(file).split('_')[2].replace('.nc','')
+        logging.info(f"Checking file: {file}, extracted date part: {date_part}")
+        if date_part.isdigit():
+            dates.append(int(date_part))
+        elif date_part.replace('-','').isdigit():
+            dates.append(int(date_part.replace('-','')))
     if not dates:
         return None, None
+
     return min(dates), max(dates)
 
 def check_origin_path(row, data_path):
