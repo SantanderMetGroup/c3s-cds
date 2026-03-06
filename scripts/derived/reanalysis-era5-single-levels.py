@@ -54,10 +54,11 @@ def main():
                 ds_v = xr.open_dataset(v_10_file)
                 ds_merge = xr.merge([ds_u, ds_v])
                 sfcwind = operations.sfcwind_from_u_v(ds_merge)
-                sfcwind_daily = operations.resample_to_daily(sfcwind,"valid_time")
+                # Take into account that the calculus can be hourly
+                if var_row["temporal_resolution"]=="daily":
+                    sfcwind = operations.resample_to_daily(sfcwind,"valid_time")
 
                 logging.info(f"Saving calculated sfcwind to {dest_dir}")
-                sfcwind_daily.to_netcdf(output_file)
-
+                sfcwind.to_netcdf(output_file)
 if __name__ == "__main__":
     main()

@@ -3,4 +3,5 @@ reanalysis-era5-single-levels,reanalysis,u10,10m_u_component_of_wind,1940,2024,r
 reanalysis-era5-single-levels,reanalysis,v10,10m_v_component_of_wind,1940,2024,reanalysis,netcdf,unarchived,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/download/reanalysis-era5-single-levels.py,raw,hourly,native,None
 reanalysis-era5-single-levels,reanalysis,sfcwind,None,1940,2024,None,None,None,None,None,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/derived/reanalysis-era5-single-levels.py,derived,daily,native,None
 reanalysis-era5-single-levels,reanalysis,d2m,2m_dewpoint_temperature,1940,2024,reanalysis,netcdf,unarchived,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/derived/reanalysis-era5-single-levels.py,raw,hourly,native,None
+reanalysis-era5-single-levels,reanalysis,sfcwind,None,1940,2024,None,None,None,None,None,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/,scripts/derived/reanalysis-era5-single-levels.py,derived,hourly,native,None
 

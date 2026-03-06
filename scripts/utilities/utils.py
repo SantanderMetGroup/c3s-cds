@@ -279,9 +279,32 @@ def handle_special_zip(zip_path, delete_zip=False):
 
 
 
-def check_file_exists(path_file, executor, dataset, request, futures=[], settings_file=None):
+def check_file_exists(path_file, executor, dataset, request, futures=[], multinetcdf_zip=None):
     """
-    
+    Check for an existing valid NetCDF file corresponding to path_file, and if missing or invalid,
+    schedule download and/or post-processing tasks on the provided executor.
+
+    Parameters
+    ----------
+    path_file : pathlib.Path or str
+        Path to the target file. If a .zip path is provided, the function uses a corresponding
+        .nc path (by replacing 'zip' with 'nc') to check for an already extracted NetCDF file.
+    executor : concurrent.futures.Executor
+        Executor used to schedule asynchronous tasks (e.g., ThreadPoolExecutor or ProcessPoolExecutor).
+    dataset : object
+        Dataset descriptor passed to download_single_file; shape and contents depend on the calling code.
+    request : object
+        Request descriptor passed to download_single_file; shape and contents depend on the calling code.
+    futures : list, optional
+        Mutable list to which newly scheduled concurrent.futures.Future objects will be appended.
+    multinetcdf_zip : bool or None, optional
+        Controls how .zip files are handled:
+    Returns
+    -------
+    bool or None
+        - True if an existing corresponding NetCDF file was found and validated successfully.
+        - None in all other cases (tasks are scheduled via executor and futures are appended).
+
     """
 
     if Path(str(path_file).replace('zip','nc')).exists():
@@ -294,12 +317,14 @@ def check_file_exists(path_file, executor, dataset, request, futures=[], setting
     futures.append(executor.submit(download_single_file, dataset, request, path_file))
     if path_file.suffix == '.zip':
         # evaluate the variable settings_file to determine how to handle the zip file
-        if settings_file == 1:
-            futures.append(executor.submit(download_single_file, dataset, request, path_file))
-        elif settings_file == 0:
+        if multinetcdf_zip:
             futures.append(executor.submit(handle_special_zip, path_file))
+        elif not multinetcdf_zip:
+            futures.append(executor.submit(extract_zip_and_delete, path_file))            
         else:
-            futures.append(executor.submit(extract_zip_and_delete, path_file))
+            futures.append(executor.submit(download_single_file, dataset, request, path_file))
+
+            
 
 
 def download_files(dataset, variables_file_path, create_request_func, get_output_filename_func, monthly_request=False,year_request=True):
@@ -333,7 +358,10 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
         )
         dest_dir.mkdir(parents=True, exist_ok=True)
         year_list = list(range(row["cds_years_start"], row["cds_years_end"] + 1))
-        is_zipped = row["zipped"].astype(bool)
+        if "is_multinetcdf_zip" in df_parameters.columns:
+            is_multinetcdf_zip = row["is_multinetcdf_zip"].astype(bool)
+        else:
+            is_multinetcdf_zip = None
 
         with ThreadPoolExecutor(max_workers=1) as executor:
             futures = []
@@ -344,14 +372,14 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                         request = create_request_func(row, year,month)
                         file = get_output_filename_func(row, dataset, year,month)
                         path_file = dest_dir / file
-                        settings_file = 1
+                        
                         check_file_exists(
                             path_file,
                             executor,
                             dataset,
                             request,
                             futures,
-                            settings_file
+                            is_multinetcdf_zip
                         )
 
 
@@ -360,30 +388,28 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                     request = create_request_func(row, year)
                     file = get_output_filename_func(row, dataset, year)
                     path_file = dest_dir / file
-                    settings_file = 1
+
                     check_file_exists(
                         path_file,
                         executor,
                         dataset,
                         request,
                         futures,
-                        settings_file
+                        is_multinetcdf_zip
                     )
                     
             else:
-
+                request = create_request_func(row, year)
+                file = get_output_filename_func(row, dataset, year)
+                path_file = dest_dir / file
                 
-                if is_zipped:
-                    settings_file = 0
-                                
                 check_file_exists(
-                    get_output_filename_func(row, dataset),
-                    dest_dir,
+                    path_file,
                     executor,
                     dataset,
-                    create_request_func(row),
+                    request,
                     futures,
-                    settings_file
+                    is_multinetcdf_zip
                 )
 
 
