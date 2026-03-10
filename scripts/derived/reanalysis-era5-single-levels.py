@@ -11,6 +11,9 @@ from utils import load_output_path_from_row, require_single_row, load_derived_de
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+MONTH_LIST = [f"{i:02d}" for i in range(1, 13)]
+
+
 def main():
     dataset="reanalysis-era5-single-levels"
     variables_file_path = f"../../requests/{dataset}.csv"
@@ -66,7 +69,7 @@ def main():
                     logging.info(f"Saving calculated sfcwind to {dest_dir}")
                     sfcwind.to_netcdf(output_file)
 
-                if var == "hurs":               
+                if var == "hurs" and var_row["temporal_resolution"]=="hourly":               
                     input_row_d2m = require_single_row(df_parameters, (df_parameters['filename_variable'] == dependencies[0]) & (df_parameters['product_type'] == 'raw'), f"{dependencies[0]}/raw")
                     input_row_t2m = require_single_row(df_parameters, (df_parameters['filename_variable'] == dependencies[1]) & (df_parameters['product_type'] == 'raw'), f"{dependencies[1]}/raw")
                     # Use utility function to load input paths
@@ -84,17 +87,32 @@ def main():
                         logging.info(f"File {output_file} already exists. Skipping...")
                         continue
                     logging.info(f"Calculating hurs from {d2m_file} and {t2m_file}")
-                    ds_d2m = xr.open_dataset(d2m_file)
-                    ds_t2m = xr.open_dataset(t2m_file)
-                    ds_merge = xr.merge([ds_d2m, ds_t2m])
-                    hurs = operations.rh_from_thermofeel(ds_merge, "d2m", "t2m")
-    
-                    logging.info(f"Saving calculated hurs to {dest_dir}")
-                    hurs.to_netcdf(output_file)
-    
-                    ds_d2m.close()
-                    ds_t2m.close()
-                    hurs.close()
-                    del ds_d2m, ds_t2m, hurs
+                    ds_d2m_complete = xr.open_dataset(d2m_file)
+                    ds_t2m_complete = xr.open_dataset(t2m_file)
+
+                    for month in MONTH_LIST:
+                        
+                        logging.info(f"Processing month: {month} for year: {year}")
+                        m = int(month)
+                        # select only times in this year and month
+                        mask_d = (ds_d2m_complete['valid_time'].dt.year == int(year)) & (ds_d2m_complete['valid_time'].dt.month == m)
+                        ds_d2m = ds_d2m_complete.sel(valid_time=ds_d2m_complete.indexes['valid_time'][mask_d])
+                        mask_t = (ds_t2m_complete['time'].dt.year == int(year)) & (ds_t2m_complete['time'].dt.month == m)
+                        ds_t2m = ds_t2m_complete.sel(time=ds_t2m_complete.indexes['time'][mask_t])
+
+
+                        ds_merge = xr.merge([ds_d2m, ds_t2m])
+                        hurs = operations.rh_from_thermofeel(ds_merge, "d2m", "t2m")
+
+                        # build a month-specific output filename safely
+                        output_file_month = Path(str(output_file).replace(str(year), f"{year}{month}"))
+                        logging.info(f"Saving calculated hurs to {output_file_month}")
+                        hurs.to_netcdf(output_file_month)
+
+                        
+                        hurs.close()
+                    ds_d2m_complete.close()
+                    ds_t2m_complete.close()
+                    # no lingering references
 if __name__ == "__main__":
     main()
