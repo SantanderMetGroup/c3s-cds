@@ -255,20 +255,37 @@ def handle_special_zip(zip_path, delete_zip=False):
     """
 
     zip_path = Path(zip_path)
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        names = zip_ref.namelist()
-        zip_ref.extractall(zip_path.parent)
 
-        for name in names:
-            extracted_path = zip_path.parent / name
+    # Only proceed if the file is actually a zip archive. This detects zip
+    # archives by signature, so it works even when the filename ends with
+    # .nc (some providers return zipped content with a .nc filename).
+    try:
+        if not zipfile.is_zipfile(zip_path):
+            logging.info(f"File {zip_path} is not a zip archive; nothing to extract")
+            return
+    except Exception as e:
+        logging.warning(f"Could not determine if {zip_path} is zip: {e}")
+        return
 
-            if extracted_path.is_dir() or extracted_path.suffix == ".nc":
-                continue
-            try:
-                if extracted_path.exists():
-                    os.remove(extracted_path)
-            except Exception as e:
-                logging.warning(f"Could not remove extracted file {extracted_path}: {e}")
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            names = zip_ref.namelist()
+            zip_ref.extractall(zip_path.parent)
+
+            for name in names:
+                extracted_path = zip_path.parent / name
+
+                # Keep directories and netCDF files; remove other auxiliary files
+                # that sometimes come inside downloads (e.g., README, .xml).
+                if extracted_path.is_dir() or extracted_path.suffix == ".nc":
+                    continue
+                try:
+                    if extracted_path.exists():
+                        os.remove(extracted_path)
+                except Exception as e:
+                    logging.warning(f"Could not remove extracted file {extracted_path}: {e}")
+    except Exception as e:
+        logging.warning(f"Failed to extract zip {zip_path}: {e}")
 
     if delete_zip:
         try:
@@ -359,7 +376,8 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
         dest_dir.mkdir(parents=True, exist_ok=True)
         year_list = list(range(row["cds_years_start"], row["cds_years_end"] + 1))
         if "is_multinetcdf_zip" in df_parameters.columns:
-            is_multinetcdf_zip = row["is_multinetcdf_zip"].astype(bool)
+            val = row["is_multinetcdf_zip"]
+            is_multinetcdf_zip = None if pd.isna(val) else bool(val)
         else:
             is_multinetcdf_zip = None
 
