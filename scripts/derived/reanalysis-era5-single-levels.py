@@ -86,33 +86,45 @@ def main():
                     if output_file.exists():
                         logging.info(f"File {output_file} already exists. Skipping...")
                         continue
-                    logging.info(f"Calculating hurs from {d2m_file} and {t2m_file}")
-                    ds_d2m_complete = xr.open_dataset(d2m_file)
-                    ds_t2m_complete = xr.open_dataset(t2m_file)
+
 
                     for month in MONTH_LIST:
-                        
+
+                        time_sel = f"{year}-{month}"
+                        logging.info(f"Calculating hurs from {d2m_file} and {t2m_file}")
+                        ds_d2m = (
+                            xr.open_dataset(d2m_file, chunks={"time": 744})
+                            .rename({"valid_time": "time"})
+                            .sel(time=time_sel)
+                        )
+                        ds_t2m = (
+                            xr.open_dataset(t2m_file, chunks={"time": 744})
+                            .sel(time=time_sel)
+                        )
+                        ds_t2m =  (
+                            ds_t2m
+                            .assign_coords(longitude=(ds_t2m.longitude % 360))
+                            .sortby("longitude")
+                        )
                         logging.info(f"Processing month: {month} for year: {year}")
-                        m = int(month)
-                        # select only times in this year and month
-                        mask_d = (ds_d2m_complete['valid_time'].dt.year == int(year)) & (ds_d2m_complete['valid_time'].dt.month == m)
-                        ds_d2m = ds_d2m_complete.sel(valid_time=ds_d2m_complete.indexes['valid_time'][mask_d])
-                        mask_t = (ds_t2m_complete['time'].dt.year == int(year)) & (ds_t2m_complete['time'].dt.month == m)
-                        ds_t2m = ds_t2m_complete.sel(time=ds_t2m_complete.indexes['time'][mask_t])
 
 
-                        ds_merge = xr.merge([ds_d2m, ds_t2m])
-                        hurs = operations.rh_from_thermofeel(ds_merge, "d2m", "t2m")
+                        hurs = operations.rh_from_thermofeel(ds_d2m, ds_t2m)
 
                         # build a month-specific output filename safely
                         output_file_month = Path(str(output_file).replace(str(year), f"{year}{month}"))
+                        
                         logging.info(f"Saving calculated hurs to {output_file_month}")
+                        if output_file_month.exists():
+                            logging.info(f"File {output_file_month} already exists. Skipping...")
+                            continue
                         hurs.to_netcdf(output_file_month)
 
                         
                         hurs.close()
-                    ds_d2m_complete.close()
-                    ds_t2m_complete.close()
+                    ds_d2m.close()
+                    ds_t2m.close()
+                    del ds_d2m, ds_t2m
                     # no lingering references
 if __name__ == "__main__":
     main()

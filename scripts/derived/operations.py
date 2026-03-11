@@ -4,19 +4,18 @@ import numpy as np
 from thermofeel.thermofeel import calculate_relative_humidity_percent
 
 
-def rh_from_thermofeel(ds: xr.Dataset, td_var: str, t2_var: str) -> xr.Dataset:
+def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
     """
     Calculate relative humidity (%) from a single xarray Dataset containing both dew-point and 2m air temperature.
     Based in https://github.com/ecmwf/thermofeel/blob/master/thermofeel/thermofeel.py#L49 and applied using xarray.
 
     Parameters
     ----------
-    ds : xarray.Dataset
-        Dataset containing both the dew-point temperature and 2m air temperature variables.
-    td_var : str
-        Name of the dew-point temperature variable (units: Kelvin expected).
-    t2_var : str
-        Name of the 2m air temperature variable (units: Kelvin expected).
+    ds_td : xarray.Dataset
+        Dataset containing the dew-point temperature variable.
+    ds_t2 : xarray.Dataset
+        Dataset containing the 2m air temperature variable.
+
 
     Returns
     -------
@@ -25,23 +24,22 @@ def rh_from_thermofeel(ds: xr.Dataset, td_var: str, t2_var: str) -> xr.Dataset:
         and the original variables (td_var, t2_var) removed.
     """
     # Validate inputs
-    if td_var not in ds:
-        raise KeyError(f"Variable '{td_var}' not found in dataset.")
-    if t2_var not in ds:
-        raise KeyError(f"Variable '{t2_var}' not found in dataset.")
+    if "d2m" not in ds_td:
+        raise KeyError(f"Variable 'd2m' not found in dataset.")
+    if "t2m" not in ds_t2:
+        raise KeyError(f"Variable 't2m' not found in dataset.")
 
-    td = ds[td_var]
-    t2 = ds[t2_var]
+    td = ds_td["d2m"]
+    t2 = ds_t2["t2m"]
 
     # Align inputs so broadcasting/coordinates are handled by xarray
-    t2_a, td_a = xr.align(t2, td)
+    t2_a, td_a = xr.align(t2, td, join="exact")
 
     # Use xr.apply_ufunc to apply the numpy-aware function while preserving coords and dask support
     rh_da = xr.apply_ufunc(
         calculate_relative_humidity_percent,
         t2_a,
         td_a,
-        vectorize=True,
         dask="parallelized",
         output_dtypes=[float],
     )
@@ -49,21 +47,11 @@ def rh_from_thermofeel(ds: xr.Dataset, td_var: str, t2_var: str) -> xr.Dataset:
     rh_da = rh_da.clip(min=0.0, max=100.0)
     # Name and attributes for the output
     rh_da.name = "hurs"
-    rh_da.attrs["units"] = "%"
-    rh_da.attrs["long_name"] = "Relative Humidity"
-
+    rh_da.attrs = {"units": "%", "long_name": "Relative Humidity"}
     # Build output dataset (copy ds so we keep coords and any ancillary variables)
-    ds_out = ds.copy()
-
-    # Add the new variable and remove the original ones
-    ds_out["hurs"] = rh_da
-    ds_out = ds_out.drop_vars([td_var, t2_var])
-
-    return ds_out
 
 
-
-
+    return rh_da
 
 
 def sfcwind_from_u_v(ds):

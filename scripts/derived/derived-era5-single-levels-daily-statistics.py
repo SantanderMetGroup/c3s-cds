@@ -53,8 +53,7 @@ def main():
                 logging.info(f"Calculating hurs from {d2m_file} and {t2m_file}")
                 ds_d2m = xr.open_dataset(d2m_file)
                 ds_t2m = xr.open_dataset(t2m_file)
-                ds_merge = xr.merge([ds_d2m, ds_t2m])
-                hurs = operations.rh_from_thermofeel(ds_merge, "d2m", "t2m")
+                hurs = operations.rh_from_thermofeel(ds_d2m, ds_t2m)
 
                 logging.info(f"Saving calculated hurs to {dest_dir}")
                 hurs.to_netcdf(output_file)
