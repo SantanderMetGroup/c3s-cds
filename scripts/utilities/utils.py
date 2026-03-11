@@ -259,33 +259,32 @@ def handle_special_zip(zip_path, delete_zip=False):
     # Only proceed if the file is actually a zip archive. This detects zip
     # archives by signature, so it works even when the filename ends with
     # .nc (some providers return zipped content with a .nc filename).
-    try:
-        if not zipfile.is_zipfile(zip_path):
-            logging.info(f"File {zip_path} is not a zip archive; nothing to extract")
-            return
-    except Exception as e:
-        logging.warning(f"Could not determine if {zip_path} is zip: {e}")
+
+    if not zipfile.is_zipfile(zip_path):
+        logging.info(f"File {zip_path} is not a zip archive; nothing to extract")
         return
 
-    try:
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            names = zip_ref.namelist()
-            zip_ref.extractall(zip_path.parent)
 
-            for name in names:
-                extracted_path = zip_path.parent / name
 
-                # Keep directories and netCDF files; remove other auxiliary files
-                # that sometimes come inside downloads (e.g., README, .xml).
-                if extracted_path.is_dir() or extracted_path.suffix == ".nc":
-                    continue
-                try:
-                    if extracted_path.exists():
-                        os.remove(extracted_path)
-                except Exception as e:
-                    logging.warning(f"Could not remove extracted file {extracted_path}: {e}")
-    except Exception as e:
-        logging.warning(f"Failed to extract zip {zip_path}: {e}")
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        names = zip_ref.namelist()
+        zip_ref.extractall(zip_path.parent)
+        logging.info(f"Extracted {zip_path} to {zip_path.parent}")
+
+        for name in names:
+            logging.info(f"Processing extracted file: {name}")
+            extracted_path = zip_path.parent / name
+
+            # Keep directories and netCDF files; remove other auxiliary files
+            # that sometimes come inside downloads (e.g., README, .xml).
+            if extracted_path.is_dir() or extracted_path.suffix == ".nc":
+                continue
+            try:
+                if extracted_path.exists():
+                    os.remove(extracted_path)
+            except Exception as e:
+                logging.warning(f"Could not remove extracted file {extracted_path}: {e}")
+
 
     if delete_zip:
         try:
@@ -323,23 +322,29 @@ def check_file_exists(path_file, executor, dataset, request, futures=[], multine
         - None in all other cases (tasks are scheduled via executor and futures are appended).
 
     """
-
-    if Path(str(path_file).replace('zip','nc')).exists():
+    if multinetcdf_zip:
+        if Path(str(path_file)).exists():
+            return True
+        else:
+            logging.warning(f"{path_file} exists but is corrupt, redownloading")
+    elif Path(str(path_file).replace('zip','nc')).exists():
         if is_valid_netcdf(Path(str(path_file).replace('zip','nc'))):
             logging.info(f"{path_file} already exists and is valid, skipping")
             return True
         else:
             logging.warning(f"{path_file} exists but is corrupt, redownloading")
 
-    futures.append(executor.submit(download_single_file, dataset, request, path_file))
     if path_file.suffix == '.zip':
         # evaluate the variable settings_file to determine how to handle the zip file
         if multinetcdf_zip:
+            logging.info("********************************")
+            logging.info(f"{path_file} is a zip containing multiple NetCDF files, scheduling download without extraction")
             futures.append(executor.submit(handle_special_zip, path_file))
         elif not multinetcdf_zip:
             futures.append(executor.submit(extract_zip_and_delete, path_file))            
-        else:
-            futures.append(executor.submit(download_single_file, dataset, request, path_file))
+    else:
+        futures.append(executor.submit(download_single_file, dataset, request, path_file))
+
 
             
 

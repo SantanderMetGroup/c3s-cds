@@ -56,7 +56,7 @@ def create_request(row,year,month="all"):
 def get_output_filename(row,dataset,year,month):
     var=row["filename_variable"]
     date=f"{year}{month}"
-    return f"{var}_{dataset}_{date}.nc"
+    return f"{var}_{dataset}_{date}.zip"
 
 
 def main():
