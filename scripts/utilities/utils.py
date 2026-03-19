@@ -18,7 +18,7 @@ from c3s_atlas.utils import (
 import logging
 
 # Configure logger if not already configured
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore")

@@ -25,5 +25,5 @@ elif project=="reanalysis-era5-single-levels":
     vars=["u10","v10"]
 for var in vars:
     # Specify the directory containing your files
-    directory = f"/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/{project}/{var}/"
+    directory = f"/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/raw/{project}/{var}/"
     rename_files(directory)

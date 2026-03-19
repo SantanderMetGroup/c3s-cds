@@ -1,3 +1,3 @@
 variable,model,experiment,dataset,dataset_type,product_type,temporal_resolution,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date,script
-utci,None,None,derived-utci-historical,reanalysis,raw,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-utci-historical/daily/native/utci,CDS,True,True,202002,202012,scripts/download/derived-utci-historical.py
-mrt,None,None,derived-utci-historical,reanalysis,raw,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/ERA5_temp/raw/derived-utci-historical/daily/native/mrt,CDS,True,True,202001,20200229,scripts/download/derived-utci-historical.py
+utci,None,None,derived-utci-historical,reanalysis,raw,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/raw/derived-utci-historical/daily/native/utci,CDS,False,False,,,scripts/download/derived-utci-historical.py
+mrt,None,None,derived-utci-historical,reanalysis,raw,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/raw/derived-utci-historical/daily/native/mrt,CDS,False,True,202001.0,20201231.0,scripts/download/derived-utci-historical.py
