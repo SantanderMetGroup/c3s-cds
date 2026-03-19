@@ -2,7 +2,7 @@
 import xarray as xr
 import numpy as np
 from thermofeel.thermofeel import calculate_relative_humidity_percent
-
+from xclim.indicators.convert import specific_humidity_from_dewpoint
 
 def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
     """
@@ -53,6 +53,9 @@ def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
 
     return rh_da
 
+def sh_xclim(tdps: xr.Dataset, ps: xr.Dataset) -> xr.Dataset:
+
+    return specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'],method="buck81")
 
 def sfcwind_from_u_v(ds):
     """Calculate wind speed from components u and v."""

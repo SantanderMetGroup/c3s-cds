@@ -10,24 +10,42 @@ from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 import zipfile
 import os
-
+from derived_variable_dependencies import VARIABLE_DEPENDENCIES, dataset_variable_mapping
 from c3s_atlas.utils import (
     extract_zip_and_delete
 )
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+import logging
+
+# Configure logger if not already configured
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 warnings.filterwarnings("ignore")
+def get_original_var(dataset_name, var_name):
+    """
+    Get the original variable name for a dataset, logging info if missing.
 
+    Returns the mapped output if it exists, otherwise the variable name itself.
+    """
+    dataset_dict = dataset_variable_mapping.get(dataset_name)
+    if dataset_dict is None:
+        logger.info(f"Dataset '{dataset_name}' not found in mapping. Returning variable name '{var_name}'.")
+        return var_name
 
-def load_derived_dependencies(dependencies_path: Path = None) -> dict:
-    """Load shared derived-variable dependencies from JSON."""
-    if dependencies_path is None:
-        dependencies_path = Path(__file__).resolve().parent.parent / "derived" / "derived_variable_dependencies.json"
+    output = dataset_dict.get(var_name)
+    if output is None:
+        logger.info(f"Variable '{var_name}' not found in dataset '{dataset_name}'. Returning variable name '{var_name}'.")
+        return var_name
+    logger.info(f"Mapping variable '{var_name}' to original variable '{output}' for dataset '{dataset_name}'.")
+    return output
 
-    with dependencies_path.open('r', encoding='utf-8') as file_handler:
-        dependencies = json.load(file_handler)
+def load_derived_dependencies() -> dict:
+    """
+    Load shared derived-variable dependencies from the global variable.
+    """
+    return VARIABLE_DEPENDENCIES
 
-    return dependencies if isinstance(dependencies, dict) else {}
 
 def read_from_yaml(file_path):
     """
@@ -443,6 +461,31 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                     logging.error(f"Failed to download file: {e}")
 
 def require_single_row(df, mask, desc=None):
+    """
+    Select a single row from a DataFrame that matches a given mask.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame to search.
+    mask : pandas.Series or array-like of bool
+        Boolean mask used to filter rows in `df`.   
+    desc : str, optional
+        Description to include in the error message if no row or multiple rows are found.
+
+    Returns
+    -------
+    pandas.Series
+        The single row from `df` that matches the mask.
+
+    Raises
+    ------
+    KeyError
+        If no row matches the mask.
+    ValueError
+        If more than one row matches the mask.
+
+    """
     matches = df[mask]
     if matches.shape[0] == 0:
         raise KeyError(f"No row found{': ' + desc if desc else ''}")
