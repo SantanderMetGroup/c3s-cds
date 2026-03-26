@@ -422,8 +422,8 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                     )
                     
             else:
-                request = create_request_func(row, year)
-                file = get_output_filename_func(row, dataset, year)
+                request = create_request_func(row)
+                file = get_output_filename_func(row, dataset)
                 path_file = dest_dir / file
                 
                 check_file_exists(
