@@ -174,43 +174,84 @@ def create_auxiliar_df(data):
 def load_values_dict():
     return {"downloaded":0,"not_downloaded":2,"partial":1}
 
+def compute_value(row):
+    """Determine value for a single aux_df row."""
+    if row['start_file_exists'] and row['final_file_exists']:
+        return 0
+    elif pd.notna(row['earliest_date']):
+        return 1
+    else:
+        return 2
+
+
+def get_simss_and_scess(aux_df, dataset_type, project):
+    """Return index (simss) and column experiments (scess)."""
+    if dataset_type in ["reanalysis", "observation"]:
+        return [project], ["historical"]
+    else:
+        return aux_df['experiment'].unique(), aux_df['experiment'].unique()
+
+
+def process_variable(aux_df, variable, df_final, ind):
+    """Process all rows in aux_df for a given variable and update df_final."""
+    filtered = aux_df[aux_df['variable'] == variable]
+    
+    if filtered.empty:
+        df_final.loc[ind, variable] = None
+        return df_final
+    
+    # Warn if multiple rows exist
+    if len(filtered) > 1:
+        logging.info(f"WARNING: Multiple rows found for variable '{variable}':")
+        logging.info(filtered[['variable','temporal_resolution','start_file_exists',
+                        'final_file_exists','earliest_date']])
+    
+    for _, row_aux in filtered.iterrows():
+        value = compute_value(row_aux)
+        temporal_res = row_aux['temporal_resolution']
+        
+        # Append new row if multiple rows exist
+        if len(filtered) > 1:
+            new_row = df_final.loc[ind].copy() if ind in df_final.index else pd.Series(index=df_final.columns)
+            new_row[variable] = value
+            new_row['temporal_resolution'] = temporal_res
+            df_final = pd.concat([df_final, pd.DataFrame([new_row])], ignore_index=True)
+        else:
+            df_final.loc[ind, variable] = value
+    
+    return df_final
+
+
 def process_csv_file(file_path, type_data):
+    """Main function to process CSV into catalog."""
     data = pd.read_csv(file_path)
-    data = data[data['product_type']==type_data]
+    data = data[data['product_type'] == type_data]
     if data.empty:
         return
+
     aux_df, dataset_type = create_auxiliar_df(data)
     project = os.path.basename(file_path).split('.')[0]
 
-    if dataset_type in ["reanalysis","observation"]:
-        simss = [project]
-        scess = ["historical"]
-    else:
-        scess = aux_df['experiment'].unique()
-    varss = aux_df["variable"].unique()
-
+    simss, scess = get_simss_and_scess(aux_df, dataset_type, project)
+    varss = aux_df['variable'].unique()
     columns = pd.MultiIndex.from_tuples([(var, sce) for var in varss for sce in scess])
+    
     df_final = pd.DataFrame(index=simss, columns=columns)
+    
+    logging.info(df_final)
+    logging.info(aux_df)
 
     for ind in df_final.index:
         for col in df_final.columns:
-            if dataset_type in ["reanalysis","observation"]:
-                logging.info(f"Processing variable {col[0]} for reanalysis dataset {project}")
-                if aux_df.loc[aux_df['variable']==col[0]]['start_file_exists'].squeeze()==True and \
-                   aux_df.loc[aux_df['variable']==col[0]]['final_file_exists'].squeeze()==True:
-                    value=0
-                elif aux_df.loc[aux_df['variable']==col[0]]['earliest_date'].squeeze() is not None:
-                    value=1
-                else:
-                    value=2
-            df_final.loc[ind,col] = value
+            variable = col[0]
+            df_final = process_variable(aux_df, variable, df_final, ind)
 
-    # Guardar CSV en carpeta catalogues
+    # Save CSV
     aux_df.to_csv(f"../../catalogues/catalogues/{project}_{type_data}_catalogue.csv", index=False)
-    # Generar imagen de las descargas
+
+    # Plot if raw
     if type_data == "raw":
         plot2(df_final, varss, project, scess, list_values=list(load_values_dict().keys()))
-
 # ---------------- Main ----------------
 def main():
     # Note: Interpolated data is now stored as 'derived' with non-native interpolation
