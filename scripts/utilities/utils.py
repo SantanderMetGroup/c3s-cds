@@ -1,6 +1,7 @@
 import datetime
 import warnings
-import json
+import glob
+
 from pathlib import Path
 import cdsapi
 import xarray as xr
@@ -492,3 +493,80 @@ def require_single_row(df, mask, desc=None):
     if matches.shape[0] > 1:
         raise ValueError(f"{matches.shape[0]} rows found{': ' + desc if desc else ''} — expected exactly 1")
     return matches.iloc[0]
+
+def raw_condition(df, orig_var, dep):
+    condition = (
+        (df['filename_variable'] == orig_var) &
+        (df['product_type'] == 'raw')
+    )
+    label = f"{orig_var}/raw"
+    return condition, label
+
+
+
+def process_derived(
+    var,    dataset,
+    dependencies,
+    df_parameters,
+    var_row,
+    year,
+    function,
+    condition_func  
+):
+    # Get original variable names
+    original_vars = [get_original_var(dataset, dep) for dep in dependencies]
+
+    # Fetch parameter rows using injected condition
+    input_rows = [
+        require_single_row(
+            df_parameters,
+            *condition_func(df_parameters, orig_var, dep)  # 👈 unpack (condition, label)
+        )
+        for orig_var, dep in zip(original_vars, dependencies)
+    ]
+
+    # Load download paths
+    download_paths = [
+        load_output_path_from_row(row, dataset) for row in input_rows
+    ]
+
+    # Get files
+    files = [
+        glob.glob(f"{path}/*{year}*.nc")[0] for path in download_paths
+    ]
+
+    # Output path
+    dest_dir = load_output_path_from_row(var_row, dataset)
+    os.makedirs(dest_dir, exist_ok=True)
+
+    # Build output filename
+    var_file = os.path.basename(files[0]).replace(original_vars[0], var)
+    output_file = Path(f"{dest_dir}/{var_file}")
+
+    logging.info(f"output_file: {output_file}")
+    if output_file.exists():
+        if is_valid_netcdf(Path(str(output_file).replace('zip','nc'))):
+            logging.info(f"{output_file} already exists and is valid, skipping")
+            return True
+
+    logging.info(f"Calculating {var} from {files}")
+
+    # Open datasets
+    datasets = [xr.open_dataset(f) for f in files]
+
+    # Rename variables dynamically
+    for i, ds in enumerate(datasets):
+        if original_vars[i] != dependencies[i]:
+            datasets[i] = ds.rename({original_vars[i]: dependencies[i]})
+
+    # Compute result
+    result = function(*datasets)
+
+    # Save result
+    logging.info(f"Saving calculated {var} to {dest_dir}")
+    result.to_netcdf(output_file)
+
+    # Close datasets
+    for ds in datasets:
+        ds.close()
+    result.close()
