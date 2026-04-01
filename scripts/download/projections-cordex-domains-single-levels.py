@@ -2,6 +2,21 @@ import sys
 sys.path.append('../utilities')
 from utils import download_files
 
+
+def build_year_windows(row):
+    start = int(row["cds_years_start"])
+    end = int(row["cds_years_end"])
+    rcm_model = str(row.get("rcm_model", "")).lower()
+
+    # GERICS requests are expected in 5-year windows (last window can be shorter).
+    if "gerics" in rcm_model:
+        start_years = list(range(start, end + 1, 5))
+        end_years = [min(s + 4, end) for s in start_years]
+        return [str(y) for y in start_years], [str(y) for y in end_years]
+
+    # Default: one full-period window.
+    return [str(start)], [str(end)]
+
 def get_output_filename(row, dataset, year=None):
     var = row["filename_variable"]
     domain = row.get("domain", "south_america")
@@ -11,7 +26,7 @@ def get_output_filename(row, dataset, year=None):
     rcm_model = row.get("rcm_model", "gerics_remo2015")
     ensemble_member = row.get("ensemble_member", "r1i1p1")
     date = f"{row['cds_years_start']}_{row['cds_years_end']}"
-    return f"{var}_{domain}_{horizontal_resolution}_{gcm_model}_{ensemble_member}_{rcm_model}_{experiment}_{dataset}_{date}.nc"
+    return f"{var}_{domain}_{horizontal_resolution}_{gcm_model}_{ensemble_member}_{rcm_model}_{experiment}_{dataset}_{date}.zip"
 
 def create_request(row, year=None):
     var = row["cds_request_variable"]
@@ -23,8 +38,7 @@ def create_request(row, year=None):
     rcm_model = row.get("rcm_model", "gerics_remo2015")
     ensemble_member = row.get("ensemble_member", "r1i1p1")
     
-    # Generar lista de años entre cds_years_start y cds_years_end
-    years = [str(y) for y in range(row["cds_years_start"], row["cds_years_end"] + 1)]
+    start_years, end_years = build_year_windows(row)
 
     return {
         "variable": [var],
@@ -35,8 +49,8 @@ def create_request(row, year=None):
         "rcm_model": [rcm_model],
         "ensemble_member": [ensemble_member],
         "temporal_resolution": [temporal_resolution],
-        "start_year": years,
-        "end_year": years,
+        "start_year": start_years,
+        "end_year": end_years,
 
     }
 

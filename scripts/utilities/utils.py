@@ -353,13 +353,16 @@ def check_file_exists(path_file, executor, dataset, request, futures=[], multine
             logging.warning(f"{path_file} exists but is corrupt, redownloading")
 
     if path_file.suffix == '.zip':
-        # evaluate the variable settings_file to determine how to handle the zip file
+        # Schedule download first, then extraction
         if multinetcdf_zip:
-            logging.info("********************************")
-            logging.info(f"{path_file} is a zip containing multiple NetCDF files, scheduling download without extraction")
-            futures.append(executor.submit(handle_special_zip, path_file))
-        elif not multinetcdf_zip:
-            futures.append(executor.submit(extract_zip_and_delete, path_file))            
+            logging.info("Scheduling download for multi-netcdf zip file")
+            futures.append(executor.submit(download_single_file, dataset, request, path_file))
+        else:
+            # For single netcdf zip: download then extract and delete
+            def download_and_extract(dataset, request, path_file):
+                download_single_file(dataset, request, path_file)
+                handle_special_zip(path_file, delete_zip=True)
+            futures.append(executor.submit(download_and_extract, dataset, request, path_file))            
     else:
         futures.append(executor.submit(download_single_file, dataset, request, path_file))
 
