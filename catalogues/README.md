@@ -20,9 +20,4 @@
 
 ![reanalysis-cerra-single-levels_catalogue.png](images/reanalysis-cerra-single-levels_catalogue.png)
 
-## reanalysis-era5-single-levels catalogue
-
-![reanalysis-era5-single-levels_catalogue.png](images/reanalysis-era5-single-levels_catalogue.png)
-
-## All Catalogues Table
-
+No all_catalogues.csv found.
