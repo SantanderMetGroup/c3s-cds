@@ -1,6 +1,6 @@
 import sys
 sys.path.append('../utilities')
-from utils import download_files
+from utils_download import download_files
 
 def load_times(row):
     h3_list=['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
@@ -89,7 +89,7 @@ def get_output_filename(row,dataset,year,month):
 def main():
     dataset="reanalysis-cerra-land"
     variables_file_path = f"../../requests/{dataset}.csv"
-    download_files(dataset, variables_file_path, create_request, get_output_filename, monthly_request=True)
+    download_files(dataset, variables_file_path, create_request, get_output_filename, request_frequency="monthly")
 
 if __name__ == "__main__":
     main()

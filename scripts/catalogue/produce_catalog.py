@@ -192,29 +192,41 @@ def get_simss_and_scess(aux_df, dataset_type, project):
         return aux_df['experiment'].unique(), aux_df['experiment'].unique()
 
 
-def process_variable(aux_df, variable, df_final, ind):
-    """Process all rows in aux_df for a given variable and update df_final."""
+def process_variable(aux_df, variable, df_final, ind, row_split_columns=None):
+    """Process rows for a variable and split output rows when configured columns differ."""
+    if row_split_columns is None:
+        row_split_columns = ['temporal_resolution']
+
     filtered = aux_df[aux_df['variable'] == variable]
     
     if filtered.empty:
         df_final.loc[ind, variable] = None
         return df_final
     
+    present_split_columns = [col for col in row_split_columns if col in filtered.columns]
+    has_multiple_rows = len(filtered) > 1
+
     # Warn if multiple rows exist
     if len(filtered) > 1:
         logging.info(f"WARNING: Multiple rows found for variable '{variable}':")
-        logging.info(filtered[['variable','temporal_resolution','start_file_exists',
-                        'final_file_exists','earliest_date']])
+        log_columns = ['variable', 'start_file_exists', 'final_file_exists', 'earliest_date']
+        log_columns = [col for col in (['variable'] + present_split_columns + log_columns[1:]) if col in filtered.columns]
+        logging.info(f"Columns used for logging: {log_columns}")
+        logging.info(f"Split columns: {row_split_columns}")
+        logging.info(filtered[log_columns])
     
     for _, row_aux in filtered.iterrows():
         value = compute_value(row_aux)
-        temporal_res = row_aux['temporal_resolution']
-        
         # Append new row if multiple rows exist
-        if len(filtered) > 1:
-            new_row = df_final.loc[ind].copy() if ind in df_final.index else pd.Series(index=df_final.columns)
+        if has_multiple_rows:
+            new_row = (
+                    df_final.loc[ind].copy()
+                    if ind in df_final.index
+                    else pd.Series(index=df_final.columns, dtype=object)
+                )
             new_row[variable] = value
-            new_row['temporal_resolution'] = temporal_res
+            for col in present_split_columns:
+                new_row[col] = row_aux[col]
             df_final = pd.concat([df_final, pd.DataFrame([new_row])], ignore_index=True)
         else:
             df_final.loc[ind, variable] = value
@@ -222,9 +234,41 @@ def process_variable(aux_df, variable, df_final, ind):
     return df_final
 
 
+def fuse_rows(df, drop_if_exists=None, start_col="cds_years_start", end_col="cds_years_end"):
+    df = df.copy()
+
+    # Columns to drop if they exist
+    drop_if_exists = drop_if_exists or []
+    cols_to_drop = [col for col in drop_if_exists if col in df.columns]
+
+    # Columns to group by (everything except dropped + start/end)
+    group_cols = [col for col in df.columns if col not in cols_to_drop + [start_col, end_col]]
+
+    # Aggregate
+    df_fused = (
+        df.groupby(group_cols, dropna=False, as_index=False)
+          .agg({
+              start_col: "min",
+              end_col: "max"
+          })
+    )
+
+    return df_fused
+
 def process_csv_file(file_path, type_data):
     """Main function to process CSV into catalog."""
     data = pd.read_csv(file_path)
+    basename=os.path.basename(file_path)
+    if "ice" in basename:
+        data = fuse_rows(
+        data,
+        drop_if_exists=["cds_cdr_type", "cds_version"]
+    )
+    if "surface-radiation" in basename:
+        data = fuse_rows(
+        data,
+        drop_if_exists=["cds_climate_data_record_type", "cds_version"]
+    )
     data = data[data['product_type'] == type_data]
     if data.empty:
         return
@@ -237,6 +281,9 @@ def process_csv_file(file_path, type_data):
     columns = pd.MultiIndex.from_tuples([(var, sce) for var in varss for sce in scess])
     
     df_final = pd.DataFrame(index=simss, columns=columns)
+
+    # If any of these columns differ for a variable, create separate output rows.
+    row_split_columns = ['temporal_resolution', 'cds_climate_data_record_type','cds_cdr_type']
     
     logging.info(df_final)
     logging.info(aux_df)
@@ -244,7 +291,7 @@ def process_csv_file(file_path, type_data):
     for ind in df_final.index:
         for col in df_final.columns:
             variable = col[0]
-            df_final = process_variable(aux_df, variable, df_final, ind)
+            df_final = process_variable(aux_df, variable, df_final, ind, row_split_columns=row_split_columns)
 
     # Save CSV
     aux_df.to_csv(f"../../catalogues/catalogues/{project}_{type_data}_catalogue.csv", index=False)
@@ -261,6 +308,9 @@ def main():
     # Procesar CSVs individuales
     for type_data in type_data_list:
         for filename in os.listdir(csv_directory):
+            if "cordex" in filename:
+                continue
+
             if filename.endswith('.csv'):
                 file_path = os.path.join(csv_directory, filename)
                 process_csv_file(file_path, type_data)

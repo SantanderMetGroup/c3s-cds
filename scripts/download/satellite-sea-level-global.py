@@ -4,22 +4,13 @@ from utils_download import download_files
 
 
 
-
-def get_output_filename(row,dataset,year):
-
-    var=row["filename_variable"]
-    date=f"{year}"
-    return f"{var}_{dataset}_{date}.nc"
-
 def create_request(row,year):
-    var=row["cds_request_variable"]
-    daily_statistic=row["cds_daily_statistic"]
+    temporal_resoution=row["cds_variable"]
     day=row["cds_day"]
     month=row["cds_month"]
-    time_zone=row["cds_time_zone"]
-    frequency=row["cds_frequency"]
-    product_type=row["cds_product_type"]
-    
+    cds_version=row["cds_version"]
+
+
     if day == "all":
         day = [
             "01", "02", "03", "04", "05", "06",
@@ -37,18 +28,20 @@ def create_request(row,year):
             "10", "11", "12"
         ]
     return {
-        "variable": [var],
-        "product_type": [product_type],
+        "variable": [temporal_resoution],
         "year": year,
         "month": month,
         "day":day,
-        "time_zone": time_zone,
-        "frequency": frequency,
-        "daily_statistic": daily_statistic,
+        "version": cds_version,
     }
+def get_output_filename(row,dataset,year):
+    
+    var=row["filename_variable"]
+    date=f"{year}"
+    return f"{var}_{dataset}_{date}.zip"
 
 def main():
-    dataset = "derived-era5-single-levels-daily-statistics"
+    dataset="satellite-sea-level-global"
     variables_file_path = f"../../requests/{dataset}.csv"
     download_files(dataset, variables_file_path, create_request, get_output_filename)
 

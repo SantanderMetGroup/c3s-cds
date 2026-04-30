@@ -1,0 +1,3 @@
+dataset,dataset_type,filename_variable,cds_years_start,cds_years_end,cds_variable,cds_version,cds_month,cds_day,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file,is_multinetcdf_zip
+satellite-sea-level-global,observation,sla,1993,2023,daily,vdt2024,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/satellite-sea-level-global.py,raw,daily,native,None,True
+

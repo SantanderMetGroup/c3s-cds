@@ -1,0 +1,2 @@
+variable,model,experiment,dataset,dataset_type,product_type,temporal_resolution,interpolation,data_path,origin_path,start_file_exists,final_file_exists,earliest_date,latest_date,script
+ice_conc,None,None,satellite-sea-ice-concentration,observations,raw,daily,native,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/raw/satellite-sea-ice-concentration/daily/native/ice_conc,CDS,False,False,,,scripts/download/satellite-sea-ice-concentration.py

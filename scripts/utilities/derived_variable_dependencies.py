@@ -11,7 +11,9 @@ dataset_variable_mapping = {
     "reanalysis-era5-single-levels": {
     },
     "derived-era5-single-levels-daily-statistics": {
-        "ps": "sp"
+        "ps": "sp",
+        "t2mx": "t2m",
+        "t2mn": "t2m",
     },
     "insitu-gridded-observations-europe": {
 
