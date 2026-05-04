@@ -77,11 +77,12 @@ jobs:
       - name: Commit and push changes
         run: |
           set -e
-
-          # Stage only what should be committed according to .gitignore rules
-          # git add -A catalogues/catalogues/*.csv catalogues/images/*.png catalogues/all_catalogues.csv
+      
+          # Asegura estar al día con el remoto para evitar non-fast-forward
+          git fetch origin
+          git pull --rebase origin "${{ github.ref_name }}"
+      
           git add -A catalogues/*
-          # Commit/push only if staging produced changes
           if ! git diff --cached --quiet; then
             git commit -m "Auto-update catalogues [skip ci]"
             git push origin HEAD:${{ github.ref }}
