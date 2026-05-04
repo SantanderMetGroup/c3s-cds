@@ -64,11 +64,25 @@ jobs:
       #     git status -u
 
 
+      # - name: Commit and push changes
+      #   run: |
+          
+      #     if ! git diff --cached --quiet; then
+      #       git add catalogues/*
+      #       git commit -m "Auto-update catalogues [skip ci]"
+      #       git push origin HEAD:${{ github.ref }}
+      #     else
+      #       echo "No changes to commit"
+      #     fi
       - name: Commit and push changes
         run: |
-          
+          set -e
+
+          # Stage only what should be committed according to .gitignore rules
+          git add -A catalogues/catalogues/*.csv catalogues/images/*.png catalogues/all_catalogues.csv
+
+          # Commit/push only if staging produced changes
           if ! git diff --cached --quiet; then
-            git add catalogues/*
             git commit -m "Auto-update catalogues [skip ci]"
             git push origin HEAD:${{ github.ref }}
           else
