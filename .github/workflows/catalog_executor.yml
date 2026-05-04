@@ -79,8 +79,8 @@ jobs:
           set -e
 
           # Stage only what should be committed according to .gitignore rules
-          git add -A catalogues/catalogues/*.csv catalogues/images/*.png catalogues/all_catalogues.csv
-
+          # git add -A catalogues/catalogues/*.csv catalogues/images/*.png catalogues/all_catalogues.csv
+          git add -A catalogues/*
           # Commit/push only if staging produced changes
           if ! git diff --cached --quiet; then
             git commit -m "Auto-update catalogues [skip ci]"
