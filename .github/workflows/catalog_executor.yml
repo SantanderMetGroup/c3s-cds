@@ -35,6 +35,12 @@ jobs:
             ls -la scripts/catalogue || true
             exit 1
           fi
+          # Asegura estar al día con el remoto para evitar non-fast-forward
+          git fetch origin
+          git pull --rebase origin "${{ github.ref_name }}"
+
+
+          
           chmod +x "$SCRIPT_PATH" || true
           JOB_ID=$(sbatch "$SCRIPT_PATH" | grep -o '[0-9]\+')
           echo "Job ID: $JOB_ID"
@@ -78,9 +84,7 @@ jobs:
         run: |
           set -e
       
-          # Asegura estar al día con el remoto para evitar non-fast-forward
-          git fetch origin
-          git pull --rebase origin "${{ github.ref_name }}"
+
       
           git add -A catalogues/*
           if ! git diff --cached --quiet; then
