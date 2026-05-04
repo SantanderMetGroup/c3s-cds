@@ -17,12 +17,12 @@ jobs:
           fetch-depth: 0               
 
 
-      - name: Clean generated files
-        run: |
-          echo "Borrando CSVs e imágenes antiguas..."
-          rm -f catalogues/catalogues/*.csv
-          rm -f catalogues/images/*.png
-          echo "Ficheros borrados."
+      # - name: Clean generated files
+      #   run: |
+      #     echo "Borrando CSVs e imágenes antiguas..."
+      #     rm -f catalogues/catalogues/*.csv
+      #     rm -f catalogues/images/*.png
+      #     echo "Ficheros borrados."
 
 
       - name: Run script
@@ -55,19 +55,20 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
-      - name: Debug workspace
-        run: |
-          echo "PWD: $(pwd)"
-          echo "Contenido de workspace:"
-          ls -R .
-          echo "Últimos cambios detectados por git:"
-          git status -u
+      # - name: Debug workspace
+      #   run: |
+      #     echo "PWD: $(pwd)"
+      #     echo "Contenido de workspace:"
+      #     ls -R .
+      #     echo "Últimos cambios detectados por git:"
+      #     git status -u
 
 
       - name: Commit and push changes
         run: |
-          git add catalogues/*
+          
           if ! git diff --cached --quiet; then
+            git add catalogues/*
             git commit -m "Auto-update catalogues [skip ci]"
             git push origin HEAD:${{ github.ref }}
           else
