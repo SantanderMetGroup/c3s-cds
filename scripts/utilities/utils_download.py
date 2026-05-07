@@ -204,11 +204,11 @@ def process_single_request(
 
     valid_file = file_exists_and_valid(path_file, is_multinetcdf_zip)
 
-    #if valid_file:
-    #    return
+    if valid_file:
+        return
 
     # download
-    #download_single_file(row["dataset"], request, path_file)
+    download_single_file(row["dataset"], request, path_file)
 
     # extract (if needed)
     if path_file.suffix == ".zip":

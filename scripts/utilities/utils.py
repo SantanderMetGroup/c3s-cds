@@ -1,13 +1,11 @@
 import warnings
-import glob
 from pathlib import Path
 import xarray as xr
 import logging
 import yaml
-
 import os
 from derived_variable_dependencies import VARIABLE_DEPENDENCIES, dataset_variable_mapping
-
+from utils_fixes import fix_dataset
 # Configure logging
 import logging
 
@@ -16,23 +14,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore")
-def get_original_var(dataset_name, var_name):
-    """
-    Get the original variable name for a dataset, logging info if missing.
 
-    Returns the mapped output if it exists, otherwise the variable name itself.
-    """
-    dataset_dict = dataset_variable_mapping.get(dataset_name)
-    if dataset_dict is None:
-        logger.info(f"Dataset mapping '{dataset_name}' not found. Returning variable name '{var_name}'.")
-        return var_name
 
-    output = dataset_dict.get(var_name)
-    if output is None:
-        logger.info(f"Variable '{var_name}' not found in dataset mapping '{dataset_name}'. Returning variable name '{var_name}'.")
-        return var_name
-    logger.info(f"Mapping variable '{var_name}' to original variable '{output}' for dataset mapping '{dataset_name}'.")
-    return output
 
 def load_derived_dependencies() -> dict:
     """
@@ -314,10 +297,6 @@ def require_rows(df, mask, desc=None , multiple=False):
         multiple= True
         return require_multiple_rows(df, mask, desc), multiple
 
-    
-
-
-
 def raw_condition(df, orig_var, dep):
     condition = (
         (df['filename_variable'] == orig_var) &
@@ -327,69 +306,4 @@ def raw_condition(df, orig_var, dep):
     return condition, label
 
 
-def process_derived(
-    var,    dataset,
-    dependencies,
-    df_parameters,
-    var_row,
-    year,
-    function,
-    condition_func  
-):
-    # Get original variable names
-    original_vars = [get_original_var(dataset, dep) for dep in dependencies]
 
-    # Fetch parameter rows using injected condition
-    input_rows = [
-        require_single_row(
-            df_parameters,
-            *condition_func(df_parameters, orig_var, dep)  # 👈 unpack (condition, label)
-        )
-        for orig_var, dep in zip(original_vars, dependencies)
-    ]
-
-    # Load download paths
-    download_paths = [
-        load_output_path_from_row(row, dataset) for row in input_rows
-    ]
-
-    # Get files
-    files = [
-        glob.glob(f"{path}/*{year}*.nc")[0] for path in download_paths
-    ]
-
-    # Output path
-    dest_dir = load_output_path_from_row(var_row, dataset)
-    os.makedirs(dest_dir, exist_ok=True)
-
-    # Build output filename
-    var_file = os.path.basename(files[0]).replace(original_vars[0], var)
-    output_file = Path(f"{dest_dir}/{var_file}")
-
-    logging.info(f"output_file: {output_file}")
-    if output_file.exists():
-        if is_valid_netcdf(Path(str(output_file).replace('zip','nc'))):
-            logging.info(f"{output_file} already exists and is valid, skipping")
-            return True
-
-    logging.info(f"Calculating {var} from {files}")
-
-    # Open datasets
-    datasets = [xr.open_dataset(f) for f in files]
-
-    # Rename variables dynamically
-    for i, ds in enumerate(datasets):
-        if original_vars[i] != dependencies[i]:
-            datasets[i] = ds.rename({original_vars[i]: dependencies[i]})
-
-    # Compute result
-    result = function(*datasets)
-
-    # Save result
-    logging.info(f"Saving calculated {var} to {dest_dir}")
-    result.to_netcdf(output_file)
-
-    # Close datasets
-    for ds in datasets:
-        ds.close()
-    result.close()

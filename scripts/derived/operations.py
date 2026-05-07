@@ -3,7 +3,6 @@ import xarray as xr
 import numpy as np
 from thermofeel.thermofeel import calculate_relative_humidity_percent
 from xclim.indicators.convert import specific_humidity_from_dewpoint
-import xarray as xr
 
 def copy_cf_metadata(src_ds: xr.Dataset, target_ds: xr.Dataset) -> xr.Dataset:
     """
@@ -48,9 +47,9 @@ def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
         and the original variables (td_var, t2_var) removed.
     """
     # Validate inputs
-    if "d2m" not in ds_td:
+    if "d2m" not in ds_td.data_vars:
         raise KeyError(f"Variable 'd2m' not found in dataset.")
-    if "t2m" not in ds_t2:
+    if "t2m" not in ds_t2.data_vars:
         raise KeyError(f"Variable 't2m' not found in dataset.")
 
     td = ds_td["d2m"]
@@ -81,42 +80,24 @@ def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
     return rh_ds
 
 def sh_xclim(tdps: xr.Dataset, ps: xr.Dataset) -> xr.Dataset:
+    if "d2m" not in tdps.data_vars:
+        raise KeyError(f"Variable 'd2m' not found in dataset.")
+    if "ps" not in ps.data_vars:
+        raise KeyError(f"Variable 'ps' not found in dataset.")
 
     return specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'],method="buck81")
 
-def sfcwind_from_u_v(ds):
+def sfcwind_from_u_v(ds_u10: xr.Dataset, ds_v10: xr.Dataset) -> xr.Dataset:
     """Calculate wind speed from components u and v."""
-    sfcwind = np.power(np.power(ds["u10"], 2) + np.power(ds["v10"], 2), 0.5)
+    if "u10" not in ds_u10.data_vars:
+        raise KeyError(f"Variable 'u10' not found in dataset.")
+    if "v10" not in ds_v10.data_vars:
+        raise KeyError(f"Variable 'v10' not found in dataset.")
+    sfcwind = np.power(np.power(ds_u10["u10"], 2) + np.power(ds_v10["v10"], 2), 0.5)
+    ds = xr.Dataset()
     ds["sfcwind"] = sfcwind
-    ds["sfcwind"].attrs["units"] = ds["u10"].attrs["units"]
-    ds = ds.drop_vars(["u10", "v10"])
-    
+    ds["sfcwind"].attrs["units"] = ds_u10["u10"].attrs["units"]
     return ds
 
 
-def resample_to_daily(ds, time_dim='time', agg_freq='1D', agg_func='mean'):
-    """
-    Resample the dataset to daily values.
 
-    Parameters:
-    - ds: xarray DataFrame containing the time series data.
-    - agg_freq: The frequency for resampling (default is '1D' for daily).
-    - agg_func: The aggregation function to apply ('mean', 'sum', 'max', 'min').
-
-    Returns:
-    - A resampled xarray DataFrame.
-    """
-
-    # Choose the aggregation function
-    if agg_func == 'mean':
-         resampled = ds.resample({time_dim: agg_freq}).mean(dim=time_dim)
-    elif agg_func == 'sum':
-        resampled = ds.resample({time_dim: agg_freq}).sum(dim=time_dim)
-    elif agg_func == 'max':
-        resampled = ds.resample({time_dim: agg_freq}).max(dim=time_dim)
-    elif agg_func == 'min':
-        resampled = ds.resample({time_dim: agg_freq}).min(dim=time_dim)
-    else:
-        raise ValueError("Invalid aggregation function. Choose 'mean', 'sum', 'max', or 'min'.")
-
-    return resampled
