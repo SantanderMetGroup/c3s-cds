@@ -58,8 +58,19 @@ def main():
                         operations.sfcwind_from_u_v,
                         raw_condition,
                         resampling=resampling
-                    )               
-                if var == "hurs" and var_row["temporal_resolution"]=="hourly":
+                    )
+                elif var == "sfcwind" and var_row["temporal_resolution"]=="hourly":
+                        process_derived(
+                        var,
+                        dataset,
+                        dependencies,
+                        df_parameters,
+                        var_row,
+                        year,
+                        operations.sfcwind_from_u_v,
+                        raw_condition,
+                    )
+                elif var == "hurs" and var_row["temporal_resolution"]=="hourly":
                     for month in MONTH_LIST:
                         process_derived(
                             var,
@@ -72,6 +83,7 @@ def main():
                             raw_condition,
                             month
                         )
-
+                else:
+                    raise ValueError(f"Unexpected variable {var} with temporal resolution {var_row['temporal_resolution']}. Check configuration and if processing logic is implemented for this case.")
 if __name__ == "__main__":
     main()

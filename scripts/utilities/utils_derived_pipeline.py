@@ -121,7 +121,7 @@ def load_files(
             raise FileNotFoundError(f"No files found in {path} for {year}")
         files.append(matches[0])
 
-
+    logger.info(f"Resolved files for dependencies: {files}")    
     return files, original_vars
 
 
@@ -150,7 +150,9 @@ def load_and_fix_datasets(
     # Time selection
     if month:
         time_sel = f"{year}-{month}"
-        datasets = [
+    else:
+        time_sel = f"{year}"
+    datasets = [
             ds.sel(time=time_sel)
             for ds in datasets
         ]
