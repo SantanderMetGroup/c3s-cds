@@ -8,11 +8,16 @@ def build_year_windows(row):
     end = int(row["cds_years_end"])
     rcm_model = str(row.get("rcm_model", "")).lower()
 
-    # GERICS requests are expected in 5-year windows (last window can be shorter).
+    # GERICS requests are expected in 5-year windows.
     if "gerics" in rcm_model:
         start_years = list(range(start, end + 1, 5))
         end_years = [min(s + 4, end) for s in start_years]
         return [str(y) for y in start_years], [str(y) for y in end_years]
+    
+    # ICTP requests must explicitly list all individual years.
+    elif "ictp" in rcm_model:
+        all_years = [str(y) for y in range(start, end + 1)]
+        return all_years, all_years
 
     # Default: one full-period window.
     return [str(start)], [str(end)]
