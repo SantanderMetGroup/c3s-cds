@@ -3,7 +3,8 @@ import pandas as pd
 import logging
 import sys
 sys.path.append('../utilities')
-from utils import  require_single_row, load_derived_dependencies, process_derived, raw_condition
+from utils import  require_single_row, load_derived_dependencies,  raw_condition
+from utils_derived_pipeline import process_derived
 # Remove any handlers added by imports like utils
 root_logger = logging.getLogger()
 if root_logger.hasHandlers():
