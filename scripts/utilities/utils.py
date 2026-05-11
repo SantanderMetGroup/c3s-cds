@@ -305,5 +305,13 @@ def raw_condition(df, orig_var, dep):
     label = f"{orig_var}/raw"
     return condition, label
 
+def derived_condition(df, orig_var, dep):
+    condition = (
+        (df['filename_variable'] == orig_var) &
+        (df['product_type'] == 'derived')
+    )
+    label = f"{orig_var}/derived"
+    return condition, label
+
 
 

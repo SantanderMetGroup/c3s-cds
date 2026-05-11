@@ -2,8 +2,9 @@ import operations
 import pandas as pd
 import logging
 import sys
-sys.path.append('../utilities')
-from utils import load_derived_dependencies, raw_condition
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utilities')))
+from utils import load_derived_dependencies, raw_condition, derived_condition
 from utils_derived_pipeline import process_derived
 root_logger = logging.getLogger()
 if root_logger.hasHandlers():
@@ -21,7 +22,8 @@ MONTH_LIST = [f"{i:02d}" for i in range(1, 13)]
 def main():
     logging.info("Starting derived variable calculations for reanalysis-era5-single-levels")
     dataset="reanalysis-era5-single-levels"
-    variables_file_path = f"../../requests/{dataset}.csv"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    variables_file_path = os.path.join(script_dir, "..", "..", "requests", f"{dataset}.csv")
     df_parameters = pd.read_csv(variables_file_path)
     derived_dependencies = load_derived_dependencies()
     native_derived_condition = (df_parameters['product_type'] == 'derived') & (df_parameters['interpolation'] == 'native')
@@ -83,6 +85,59 @@ def main():
                             raw_condition,
                             month
                         )
+                elif var == "rsus" and var_row["temporal_resolution"]=="hourly":
+                    process_derived(
+                        var,
+                        dataset,
+                        dependencies,
+                        df_parameters,
+                        var_row,
+                        year,
+                        operations.rsus_from_rsds_rsns,
+                        raw_condition,
+                    )
+                elif var == "rlus" and var_row["temporal_resolution"]=="hourly":
+                    process_derived(
+                        var,
+                        dataset,
+                        dependencies,
+                        df_parameters,
+                        var_row,
+                        year,
+                        operations.rlus_from_rlds_rlns,
+                        raw_condition,
+                    )
+                elif var == "mrt" and var_row["temporal_resolution"]=="hourly":
+                    start_time = time.time()
+                    process_derived(
+                        var,
+                        dataset,
+                        dependencies,
+                        df_parameters,
+                        var_row,
+                        year,
+                        operations.mrt_from_rsus_rlus_rsds_rlds,
+                        [derived_condition, derived_condition, raw_condition, raw_condition],
+                    )
+                    end_time = time.time()
+                    logging.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
+                elif var == "utci" and var_row["temporal_resolution"]=="hourly":
+                    #timestamps for checking how fast is the processing
+                    start_time = time.time()
+                    print(start_time)
+                    process_derived(
+                        var,
+                        dataset,
+                        dependencies,
+                        df_parameters,
+                        var_row,
+                        year,
+                        operations.utci_from_t2m_sfcwind_hurs_mrt,
+                        [raw_condition, derived_condition, derived_condition, derived_condition],
+                    )
+                    end_time = time.time()
+                    print(end_time)
+                    logging.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
                 else:
                     raise ValueError(f"Unexpected variable {var} with temporal resolution {var_row['temporal_resolution']}. Check configuration and if processing logic is implemented for this case.")
 if __name__ == "__main__":

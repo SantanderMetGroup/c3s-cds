@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dataset — C3S CDS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1 id="page-title">Dataset</h1>
+  <p id="page-subtitle"></p>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="catalogue-viewer.html">Full Catalogue Table</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <div id="detail-error"></div>
+
+  <div class="detail-header" id="detail-header"></div>
+
+  <img class="detail-heatmap" id="detail-heatmap" alt=""
+       onerror="this.style.display='none'">
+
+  <h2>Variables</h2>
+  <div class="table-container variable-table">
+    <table id="variable-table">
+      <thead>
+        <tr>
+          <th>Variable</th>
+          <th>Product</th>
+          <th>Resolution</th>
+          <th>Interpolation</th>
+          <th>Earliest</th>
+          <th>Latest</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="variable-body"></tbody>
+    </table>
+  </div>
+
+  <h2>Validation Timeseries</h2>
+  <div class="gallery" id="validation-gallery"></div>
+
+</div>
+
+<footer>Generated from <a href="https://github.com/SantanderMetGroup/c3s-cds">c3s-cds</a> catalogues</footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="close" id="lightbox-close">&times;</button>
+  <img id="lightbox-img" alt="">
+</div>
+
+<script src="script.js"></script>
+<script>
+async function buildDetail() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const dsName = params.get('dataset');
+    if (!dsName) { showError('detail-error', 'No dataset specified. <a href="index.html">Back to dashboard</a>'); return; }
+
+    const info = DATASET_INFO[dsName];
+    if (!info) { showError('detail-error', 'Unknown dataset: ' + escapeHtml(dsName) + '. <a href="index.html">Back to dashboard</a>'); return; }
+
+    document.getElementById('page-title').textContent = info.label;
+    document.getElementById('page-subtitle').textContent = dsName + ' — ' + info.type + ' — ' + info.period;
+
+    const header = document.getElementById('detail-header');
+    header.innerHTML = `
+      <h2>${escapeHtml(info.label)}</h2>
+      <div class="subtitle">
+        <strong>Dataset:</strong> ${escapeHtml(dsName)} &middot;
+        <strong>Type:</strong> ${escapeHtml(info.type)} &middot;
+        <strong>Period:</strong> ${escapeHtml(info.period)}
+      </div>
+    `;
+
+    const heatmap = document.getElementById('detail-heatmap');
+    heatmap.src = datasetHeatmapPath(dsName);
+    heatmap.alt = info.label + ' heatmap';
+
+    const allData = await loadCSV(DATA_DIR + '/all_catalogues.csv');
+    const rows = allData.filter(r => r.dataset === dsName);
+
+    const tbody = document.getElementById('variable-body');
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No entries found for this dataset.</td></tr>';
+    } else {
+      tbody.innerHTML = rows.map(row => {
+        const status = getStatus(row);
+        return '<tr class="row-' + status + '">' +
+          '<td>' + escapeHtml(row.variable || '') + '</td>' +
+          '<td>' + escapeHtml(row.product_type || '') + '</td>' +
+          '<td>' + escapeHtml(row.temporal_resolution || '') + '</td>' +
+          '<td>' + escapeHtml(row.interpolation || '') + '</td>' +
+          '<td>' + formatDate(row.earliest_date) + '</td>' +
+          '<td>' + formatDate(row.latest_date) + '</td>' +
+          '<td><span class="badge badge-' + status + '">' + status + '</span></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    const gallery = document.getElementById('validation-gallery');
+    const valDir = datasetValidationDir(dsName);
+    const valBase = VALIDATION_DIR + '/' + valDir + '/';
+    const seen = new Set();
+    let galleryItems = '';
+
+    for (const row of rows) {
+      const varName = row.variable;
+      if (!varName || seen.has(varName)) continue;
+      seen.add(varName);
+      const imgPath = valBase + varName + '_timeseries.png';
+      galleryItems += '<div class="gallery-item" data-src="' + imgPath + '">' +
+        '<img src="' + imgPath + '" alt="' + escapeHtml(varName) + ' validation" loading="lazy"' +
+        ' onerror="this.parentElement.remove()">' +
+        '<div class="caption">' + escapeHtml(varName) + '</div></div>';
+    }
+
+    if (galleryItems) {
+      gallery.innerHTML = galleryItems;
+    } else {
+      gallery.innerHTML = '<div class="empty-state">No validation plots available for this dataset.</div>';
+    }
+
+    setupLightbox();
+  } catch (err) {
+    showError('detail-error', 'Error loading dataset: ' + err.message + '. <a href="index.html">Back to dashboard</a>');
+  }
+}
+
+buildDetail();
+</script>
+</body>
+</html>

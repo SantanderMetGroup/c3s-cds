@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogue Table — C3S CDS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Full Catalogue Table</h1>
+  <p>All variables across all datasets — <span id="row-count"></span></p>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="catalogue-viewer.html">Full Catalogue Table</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <div class="filters" id="filters">
+    <div class="filter-group">
+      <label for="filter-dataset">Dataset</label>
+      <select id="filter-dataset"><option value="">All</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-variable">Variable</label>
+      <input type="search" id="filter-variable" placeholder="Search variable...">
+    </div>
+    <div class="filter-group">
+      <label for="filter-type">Type</label>
+      <select id="filter-type"><option value="">All</option><option value="reanalysis">Reanalysis</option><option value="observation">Observation</option><option value="observations">Observations</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-product">Product</label>
+      <select id="filter-product"><option value="">All</option><option value="raw">Raw</option><option value="derived">Derived</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-status">Status</label>
+      <select id="filter-status"><option value="">All</option><option value="complete">Complete</option><option value="partial">Partial</option><option value="missing">Missing</option></select>
+    </div>
+  </div>
+
+  <div id="table-error"></div>
+  <div class="table-container">
+    <table id="catalogue-table">
+      <thead id="table-head"></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>Generated from <a href="https://github.com/SantanderMetGroup/c3s-cds">c3s-cds</a> catalogues</footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="close" id="lightbox-close">&times;</button>
+  <img id="lightbox-img" alt="">
+</div>
+
+<script src="script.js"></script>
+<script>
+const TABLE_COLS = [
+  { key: 'variable', label: 'Variable' },
+  { key: 'dataset', label: 'Dataset' },
+  { key: 'dataset_type', label: 'Type' },
+  { key: 'product_type', label: 'Product' },
+  { key: 'temporal_resolution', label: 'Resolution' },
+  { key: 'interpolation', label: 'Interpolation' },
+  { key: 'earliest_date', label: 'Earliest', render: v => formatDate(v) },
+  { key: 'latest_date', label: 'Latest', render: v => formatDate(v) },
+  { key: 'status', label: 'Status', render: (v, row) => {
+    const s = getStatus(row);
+    return `<span class="badge badge-${s}">${s}</span>`;
+  }},
+];
+
+let allData = [];
+let sortKey = 'dataset';
+let sortAsc = true;
+
+function renderTable(data) {
+  const thead = document.getElementById('table-head');
+  thead.innerHTML = '<tr>' + TABLE_COLS.map(c => {
+    const arrow = sortKey === c.key ? (sortAsc ? '&#9650;' : '&#9660;') : '';
+    return `<th data-key="${c.key}">${escapeHtml(c.label)} <span class="sort-arrow">${arrow}</span></th>`;
+  }).join('') + '</tr>';
+
+  thead.querySelectorAll('th').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if (sortKey === key) sortAsc = !sortAsc;
+      else { sortKey = key; sortAsc = true; }
+      applyFilters();
+    });
+  });
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = data.map(row => {
+    const status = getStatus(row);
+    return '<tr class="row-' + status + '">' + TABLE_COLS.map(c => {
+      let val = c.render ? c.render(row[c.key], row) : escapeHtml(row[c.key] || '');
+      return `<td>${val}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+
+  document.getElementById('row-count').textContent = data.length + ' rows';
+}
+
+function applyFilters() {
+  const dsFilter = document.getElementById('filter-dataset').value;
+  const varFilter = document.getElementById('filter-variable').value.toLowerCase();
+  const typeFilter = document.getElementById('filter-type').value;
+  const prodFilter = document.getElementById('filter-product').value;
+  const statusFilter = document.getElementById('filter-status').value;
+
+  let filtered = allData.filter(row => {
+    if (dsFilter && row.dataset !== dsFilter) return false;
+    if (varFilter && !row.variable.toLowerCase().includes(varFilter)) return false;
+    if (typeFilter && row.dataset_type !== typeFilter) return false;
+    if (prodFilter && row.product_type !== prodFilter) return false;
+    if (statusFilter && getStatus(row) !== statusFilter) return false;
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    let va = (a[sortKey] || '').toLowerCase();
+    let vb = (b[sortKey] || '').toLowerCase();
+    if (sortKey === 'earliest_date' || sortKey === 'latest_date') {
+      va = a[sortKey] || '';
+      vb = b[sortKey] || '';
+    }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  renderTable(filtered);
+}
+
+async function init() {
+  try {
+    allData = await loadCSV(DATA_DIR + '/all_catalogues.csv');
+
+    const datasets = [...new Set(allData.map(r => r.dataset).filter(Boolean))].sort();
+    const sel = document.getElementById('filter-dataset');
+    datasets.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = DATASET_INFO[d] ? DATASET_INFO[d].label : d;
+      sel.appendChild(opt);
+    });
+
+    ['filter-dataset', 'filter-variable', 'filter-type', 'filter-product', 'filter-status'].forEach(id => {
+      document.getElementById(id).addEventListener('change', applyFilters);
+      document.getElementById(id).addEventListener('input', applyFilters);
+    });
+
+    applyFilters();
+  } catch (err) {
+    showError('table-error', 'Could not load catalogue data: ' + err.message);
+  }
+}
+
+init();
+</script>
+</body>
+</html>

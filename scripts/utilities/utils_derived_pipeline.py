@@ -82,7 +82,7 @@ def load_files(
     dataset_name,
     dependencies,
     df_parameters,
-    condition_func,
+    condition_funcs,
     year,
 ):
     """
@@ -102,9 +102,9 @@ def load_files(
     input_rows = [
         require_single_row(
             df_parameters,
-            *condition_func(df_parameters, orig_var, dep)
+            *cond_func(df_parameters, orig_var, dep)
         )
-        for orig_var, dep in zip(original_vars, dependencies)
+        for orig_var, dep, cond_func in zip(original_vars, dependencies, condition_funcs)
     ]
 
     # Get download paths
@@ -283,12 +283,18 @@ def process_derived(
     bool
         True if computation was completed or skipped due to existing valid output.
     """
+    # Support per-dependency condition functions (list) or single (broadcast)
+    if callable(condition_func):
+        condition_funcs = [condition_func] * len(dependencies)
+    else:
+        condition_funcs = condition_func
+
     # Load files
     files, original_vars = load_files(
         dataset_name,
         dependencies,
         df_parameters,
-        condition_func,
+        condition_funcs,
         year,
     )
 

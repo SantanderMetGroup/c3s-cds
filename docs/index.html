@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C3S CDS Catalogues</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>C3S CDS Catalogues</h1>
+  <p>Copernicus Climate Data Store — dataset availability catalogues</p>
+  <nav>
+    <a href="index.html">Dashboard</a>
+    <a href="catalogue-viewer.html">Full Catalogue Table</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <div id="dashboard-error"></div>
+  <div class="dataset-grid" id="dataset-grid"></div>
+
+</div>
+
+<footer>Generated from <a href="https://github.com/SantanderMetGroup/c3s-cds">c3s-cds</a> catalogues</footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="close" id="lightbox-close">&times;</button>
+  <img id="lightbox-img" alt="">
+</div>
+
+<script src="script.js"></script>
+<script>
+async function buildDashboard() {
+  try {
+    const data = await loadCSV(DATA_DIR + '/all_catalogues.csv');
+
+    const datasets = {};
+    for (const row of data) {
+      const ds = row.dataset;
+      if (!ds) continue;
+      if (!datasets[ds]) datasets[ds] = [];
+      datasets[ds].push(row);
+    }
+
+    const dsNames = Object.keys(DATASET_INFO).filter(d => datasets[d] && datasets[d].length > 0);
+    const allVars = Object.values(datasets).flat().length;
+    const completeCount = Object.values(datasets).flat().filter(r => getStatus(r) === 'complete').length;
+
+    const statsBar = document.getElementById('stats-bar');
+    statsBar.innerHTML = `
+      <div class="stat-card"><div class="value">${dsNames.length}</div><div class="label">Datasets</div></div>
+      <div class="stat-card"><div class="value">${allVars}</div><div class="label">Variables</div></div>
+      <div class="stat-card"><div class="value">${completeCount}</div><div class="label">Complete</div></div>
+      <div class="stat-card"><div class="value">${allVars - completeCount}</div><div class="label">Incomplete</div></div>
+    `;
+
+    const grid = document.getElementById('dataset-grid');
+    grid.innerHTML = '';
+
+    for (const name of dsNames) {
+      const info = DATASET_INFO[name] || { label: name, type: '', period: '' };
+      const rows = datasets[name];
+      const vars = new Set(rows.map(r => r.variable)).size;
+      const statusCounts = { complete: 0, partial: 0, missing: 0 };
+      for (const r of rows) { statusCounts[getStatus(r)]++; }
+
+      let overallStatus = 'complete';
+      if (statusCounts.missing > 0) overallStatus = 'partial';
+      if (statusCounts.missing === rows.length) overallStatus = 'missing';
+
+      const heatmapPath = datasetHeatmapPath(name);
+
+      const card = document.createElement('div');
+      card.className = 'dataset-card';
+      card.innerHTML = `
+        <h3><a href="dataset.html?dataset=${encodeURIComponent(name)}">${escapeHtml(info.label)}</a></h3>
+        <img class="thumb" src="${heatmapPath}" alt="${escapeHtml(name)} heatmap" loading="lazy"
+             onerror="this.style.display='none'">
+        <div class="meta">
+          <span>${escapeHtml(info.type)}</span>
+          <span>${vars} variable${vars !== 1 ? 's' : ''}</span>
+          <span>${escapeHtml(info.period)}</span>
+          <span class="badge badge-${overallStatus}">${overallStatus}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    }
+
+    if (dsNames.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No catalogue data found.</div>';
+    }
+
+    setupLightbox();
+  } catch (err) {
+    showError('dashboard-error', 'Could not load catalogue data: ' + err.message);
+  }
+}
+
+buildDashboard();
+</script>
+</body>
+</html>

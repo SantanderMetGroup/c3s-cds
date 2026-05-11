@@ -53,10 +53,22 @@ jobs:
           echo "Job $JOB_ID terminado."
           sleep 10
 
+      - name: Copy assets to docs/ for GitHub Pages
+        run: |
+          mkdir -p docs/data docs/img/heatmaps docs/img/validations
+          cp catalogues/catalogues/*.csv docs/data/
+          cp catalogues/images/*.png docs/img/heatmaps/
+          for dir in validations/*/; do
+            name="$(basename "$dir")"
+            mkdir -p "docs/img/validations/$name"
+            cp "$dir"*.png "docs/img/validations/$name/" 2>/dev/null || true
+          done
+          echo "Assets copied to docs/"
+
       - name: Set up git auth
         run: |
           git status
-          ls -l catalogues/
+          ls -la catalogues/ docs/data/ docs/img/heatmaps/ 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
@@ -86,7 +98,7 @@ jobs:
       
 
       
-          git add -A catalogues/*
+          git add -A catalogues/* docs/*
           if ! git diff --cached --quiet; then
             git commit -m "Auto-update catalogues [skip ci]"
             git push origin HEAD:${{ github.ref }}
