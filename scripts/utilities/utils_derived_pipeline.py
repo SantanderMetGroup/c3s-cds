@@ -9,7 +9,7 @@ from utils_fixes import fix_dataset
 from utils import load_output_path_from_row, require_single_row, is_valid_netcdf
 # Configure logging
 import logging
-
+import dask.array as da
 # Configure logger if not already configured
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -138,7 +138,8 @@ def load_and_fix_datasets(
     This includes structure fixing, optional time filtering, and variable
     name normalization to standard dependency names.
     """
-
+    if month:
+        chunks={"time": 744}
     datasets = [
         xr.open_dataset(f, chunks=chunks)
         for f in files
@@ -342,6 +343,17 @@ def process_derived(
 
     # Save
     logging.info(f"Saving calculated {var} to {dest_dir}")
+
+    n_tasks = 0
+
+    for v in result.data_vars:
+        arr = result[v].data
+
+        if isinstance(arr, da.Array):
+            n_tasks += len(arr.__dask_graph__())
+
+    logging.info(f"Dask graph size: {n_tasks:,} tasks")
+    logging.info(f"Output chunks: {result.chunks}")
     result.to_netcdf(output_file)
 
     # Cleanup

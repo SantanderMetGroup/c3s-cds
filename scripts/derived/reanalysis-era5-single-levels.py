@@ -62,6 +62,7 @@ def main():
                         resampling=resampling
                     )
                 elif var == "sfcwind" and var_row["temporal_resolution"]=="hourly":
+                    for month in MONTH_LIST:
                         process_derived(
                         var,
                         dataset,
@@ -71,6 +72,7 @@ def main():
                         year,
                         operations.sfcwind_from_u_v,
                         raw_condition,
+                        month=month
                     )
                 elif var == "hurs" and var_row["temporal_resolution"]=="hourly":
                     for month in MONTH_LIST:

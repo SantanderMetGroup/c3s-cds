@@ -7,8 +7,8 @@ import pandas as pd
 from pathlib import Path
 import sys
 sys.path.append('../utilities')
-from utils import  load_output_path_from_row,require_single_row,is_valid_netcdf,get_original_var,VARIABLE_DEPENDENCIES
-
+from utils import  load_output_path_from_row,require_single_row,is_valid_netcdf,VARIABLE_DEPENDENCIES
+from utils_derived_pipeline import get_original_var
 def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     """
     Save a xarray.Dataset as a netCDF file.

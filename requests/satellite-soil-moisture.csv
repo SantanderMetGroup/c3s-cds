@@ -1,0 +1,3 @@
+dataset,dataset_type,filename_variable,cds_request_variable,cds_years_start,cds_years_end,cds_type_of_record,cds_time_aggregation,cds_version,cds_month,cds_day,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file,is_multinetcdf_zip
+satellite-soil-moisture,observations,rzsm,root_zone_soil_moisture_volumetric,1980,2024,cdr,daily,v202505,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/satellite-soil-moisture.py,raw,daily,native,None,True
+satellite-soil-moisture,observations,rzsm,root_zone_soil_moisture_volumetric,2025,2025,icdr,daily,v202505,all,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/satellite-soil-moisture.py,raw,daily,native,None,True
