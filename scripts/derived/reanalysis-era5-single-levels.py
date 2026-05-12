@@ -3,8 +3,11 @@ import pandas as pd
 import logging
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utilities')))
+from dask.distributed import Client
+
+sys.path.append('../utilities')
 from utils import load_derived_dependencies, raw_condition, derived_condition
+from utils_dask_slurm import load_slurm_dask_config
 from utils_derived_pipeline import process_derived
 root_logger = logging.getLogger()
 if root_logger.hasHandlers():
@@ -18,8 +21,17 @@ logging.basicConfig(
 
 MONTH_LIST = [f"{i:02d}" for i in range(1, 13)]
 
+PARAMS_SLURM = load_slurm_dask_config()
+logging.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
+
+
 
 def main():
+    client = Client(
+    n_workers=1,
+    threads_per_worker=PARAMS_SLURM["threads"],
+    memory_limit=PARAMS_SLURM["memory_limit"]
+)
     logging.info("Starting derived variable calculations for reanalysis-era5-single-levels")
     dataset="reanalysis-era5-single-levels"
     script_dir = os.path.dirname(os.path.abspath(__file__))

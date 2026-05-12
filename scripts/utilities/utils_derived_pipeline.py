@@ -1,4 +1,6 @@
 import warnings
+from functools import partial
+
 import glob
 from pathlib import Path
 import xarray as xr
@@ -9,10 +11,12 @@ from utils_fixes import fix_dataset
 from utils import load_output_path_from_row, require_single_row, is_valid_netcdf
 # Configure logging
 import logging
-
+import dask.array as da
 # Configure logger if not already configured
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
 
 warnings.filterwarnings("ignore")
 
@@ -125,42 +129,70 @@ def load_files(
     return files, original_vars
 
 
+
+
+def _preprocess_dataset(
+    ds: xr.Dataset,
+    dataset_name: str,
+    year: int,
+    month: int | None = None,
+) -> xr.Dataset:
+    """
+    Standard preprocessing applied during dataset opening.
+
+    Includes:
+    - structure fixing
+    - temporal selection
+    - variable normalization
+    """
+
+    # Fix structure
+    ds = fix_dataset(ds)
+
+    # Time selection
+    time_sel = f"{year}-{month}" if month else str(year)
+    ds = ds.sel(time=time_sel)
+
+    # Normalize variable names
+    ds = normalize_var_names(ds, dataset_name)
+
+    return ds
+
+
 def load_and_fix_datasets(
     files,
     dataset_name,
     year,
     month=None,
-    chunks={"time": 744}
+    chunks=None,
 ):
     """
-    Load NetCDF files into xarray datasets and apply standard preprocessing.
+    Load NetCDF files into xarray datasets with preprocessing.
 
-    This includes structure fixing, optional time filtering, and variable
-    name normalization to standard dependency names.
+    Preprocessing includes:
+    - structure fixes
+    - temporal filtering
+    - variable normalization
     """
 
+    if chunks is None:
+        chunks = {"time": 744}
+
+    preprocess = partial(
+        _preprocess_dataset,
+        dataset_name=dataset_name,
+        year=year,
+        month=month,
+    )
+
     datasets = [
-        xr.open_dataset(f, chunks=chunks)
+        xr.open_mfdataset(
+            [f],
+            chunks=chunks,
+            preprocess=preprocess,
+            combine="by_coords",
+        )
         for f in files
-    ]
-
-    # Fix structure
-    datasets = [fix_dataset(ds) for ds in datasets]
-
-    # Time selection
-    if month:
-        time_sel = f"{year}-{month}"
-    else:
-        time_sel = f"{year}"
-    datasets = [
-            ds.sel(time=time_sel)
-            for ds in datasets
-        ]
-
-    # Normalize variable names
-    datasets = [
-        normalize_var_names(ds, dataset_name)
-        for ds in datasets
     ]
 
     return datasets
@@ -332,16 +364,28 @@ def process_derived(
         datasets,
         dependencies
     )
+    #inputs = [ds.persist() for ds in inputs]
 
     # Compute
     result = function(*inputs)
-
     # Resample if needed
     if resampling:
         result = resample_dataset(result, time_dim="time", agg_freq=resampling["agg_freq"], agg_func=resampling["agg_func"])
+    result = result.compute()
 
     # Save
     logging.info(f"Saving calculated {var} to {dest_dir}")
+
+    n_tasks = 0
+
+    for v in result.data_vars:
+        arr = result[v].data
+
+        if isinstance(arr, da.Array):
+            n_tasks += len(arr.__dask_graph__())
+
+    logging.info(f"Dask graph size: {n_tasks:,} tasks")
+    logging.info(f"Output chunks: {result.chunks}")
     result.to_netcdf(output_file)
 
     # Cleanup

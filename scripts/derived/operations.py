@@ -85,19 +85,19 @@ def sh_xclim(tdps: xr.Dataset, ps: xr.Dataset) -> xr.Dataset:
     if "ps" not in ps.data_vars:
         raise KeyError(f"Variable 'ps' not found in dataset.")
 
-    return specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'],method="buck81")
+    return specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'],method="tetens30")
 
 def sfcwind_from_u_v(ds_u10: xr.Dataset, ds_v10: xr.Dataset) -> xr.Dataset:
     """Calculate wind speed from components u and v."""
-    if "u10" not in ds_u10.data_vars:
-        raise KeyError(f"Variable 'u10' not found in dataset.")
-    if "v10" not in ds_v10.data_vars:
-        raise KeyError(f"Variable 'v10' not found in dataset.")
-    sfcwind = np.power(np.power(ds_u10["u10"], 2) + np.power(ds_v10["v10"], 2), 0.5)
-    ds = xr.Dataset()
-    ds["sfcwind"] = sfcwind
-    ds["sfcwind"].attrs["units"] = ds_u10["u10"].attrs["units"]
-    return ds
+    if "u10" not in ds_u10:
+        raise KeyError("Variable 'u10' not found in dataset.")
+    if "v10" not in ds_v10:
+        raise KeyError("Variable 'v10' not found in dataset.")
+
+    sfcwind = np.hypot(ds_u10["u10"], ds_v10["v10"])
+    sfcwind.attrs["units"] = ds_u10["u10"].attrs.get("units")
+
+    return xr.Dataset({"sfcwind": sfcwind})
 
 
 
