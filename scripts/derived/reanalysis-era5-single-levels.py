@@ -62,16 +62,18 @@ def main():
                         resampling=resampling
                     )
                 elif var == "sfcwind" and var_row["temporal_resolution"]=="hourly":
+                    for month in MONTH_LIST:
                         process_derived(
-                        var,
-                        dataset,
-                        dependencies,
-                        df_parameters,
-                        var_row,
-                        year,
-                        operations.sfcwind_from_u_v,
-                        raw_condition,
-                    )
+                            var,
+                            dataset,
+                            dependencies,
+                            df_parameters,
+                            var_row,
+                            year,
+                            operations.sfcwind_from_u_v,
+                            raw_condition,
+                            month
+                        )
                 elif var == "hurs" and var_row["temporal_resolution"]=="hourly":
                     for month in MONTH_LIST:
                         process_derived(
@@ -86,27 +88,31 @@ def main():
                             month
                         )
                 elif var == "rsus" and var_row["temporal_resolution"]=="hourly":
-                    process_derived(
-                        var,
-                        dataset,
-                        dependencies,
-                        df_parameters,
-                        var_row,
-                        year,
-                        operations.rsus_from_rsds_rsns,
-                        raw_condition,
-                    )
+                    for month in MONTH_LIST:
+                        process_derived(
+                            var,
+                            dataset,
+                            dependencies,
+                            df_parameters,
+                            var_row,
+                            year,
+                            operations.rsus_from_rsds_rsns,
+                            raw_condition,
+                            month
+                        )
                 elif var == "rlus" and var_row["temporal_resolution"]=="hourly":
-                    process_derived(
-                        var,
-                        dataset,
-                        dependencies,
-                        df_parameters,
-                        var_row,
-                        year,
-                        operations.rlus_from_rlds_rlns,
-                        raw_condition,
-                    )
+                    for month in MONTH_LIST:
+                        process_derived(
+                            var,
+                            dataset,
+                            dependencies,
+                            df_parameters,
+                            var_row,
+                            year,
+                            operations.rlus_from_rlds_rlns,
+                            raw_condition,
+                            month
+                        )   
                 elif var == "mrt" and var_row["temporal_resolution"]=="hourly":
                     start_time = time.time()
                     process_derived(
