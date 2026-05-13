@@ -1,5 +1,5 @@
 # c3s-cds
-**GH page with the entire catalogue and dashboards**
+**[GH page with the entire catalogue and dashboards](https://santandermetgroup.github.io/c3s-cds/index.html)**
 
 
 This repository contains scripts to download, preprocess, standardize, and consolidate the catalogues available in the CDS.
