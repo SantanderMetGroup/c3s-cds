@@ -4,8 +4,9 @@ import logging
 import sys
 import os
 from dask.distributed import Client
+import time
 
-sys.path.append('../utilities')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utilities')))
 from utils import load_derived_dependencies, raw_condition, derived_condition
 from utils_dask_slurm import load_slurm_dask_config
 from utils_derived_pipeline import process_derived

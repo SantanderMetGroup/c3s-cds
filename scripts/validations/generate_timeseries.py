@@ -4,8 +4,35 @@ import xarray as xr
 import glob
 import pandas as pd
 import matplotlib.pyplot as plt
+import sys
 
-def process_catalog(catalog_path, output_root="validations"):
+# Go up TWO directories from validations/ (to reach c3s-cds root)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(project_root)
+
+# Add the utilities directory to sys.path to resolve module imports
+scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(scripts_dir, 'utilities'))
+
+from utils_dask_slurm import load_slurm_dask_config
+
+from dask.distributed import Client
+
+
+PARAMS_SLURM = load_slurm_dask_config()
+
+
+
+def main(catalog_path, output_root="validations"):
+
+
+    client = Client(
+        n_workers=1,
+        threads_per_worker=PARAMS_SLURM["threads"],
+        memory_limit=PARAMS_SLURM["memory_limit"]
+    )
+
+    
     """
     Reads the catalog and processes each entry to generate an aggregated time series.
     """
@@ -86,4 +113,4 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    process_catalog(args.catalog, args.output_root)
+    main(args.catalog, args.output_root)

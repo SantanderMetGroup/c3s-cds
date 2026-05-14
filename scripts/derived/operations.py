@@ -125,6 +125,15 @@ def rlus_from_rlds_rlns(ds_rlds: xr.Dataset, ds_rlns: xr.Dataset) -> xr.Dataset:
     ds["rlus"].attrs["units"] = ds_rlds["rlds"].attrs["units"]
     return ds
 
+def _to_radiation_flux(da: xr.DataArray) -> xr.DataArray:
+    """Convert J m-2 to W m-2 (÷3600 for hourly data)."""
+    units = da.attrs.get("units", "")
+    if "W m-2" in units:
+        return da
+    out = da / 3600
+    out.attrs["units"] = "W m-2"
+    return out
+
 def mrt_from_rsus_rlus_rsds_rlds(ds_rsus: xr.Dataset, ds_rlus: xr.Dataset, ds_rsds: xr.Dataset, ds_rlds: xr.Dataset) -> xr.Dataset:
     """Calculate mean radiant temperature from surface upwelling/downwelling shortwave and longwave radiation."""
     if "rsus" not in ds_rsus.data_vars:
@@ -135,8 +144,11 @@ def mrt_from_rsus_rlus_rsds_rlds(ds_rsus: xr.Dataset, ds_rlus: xr.Dataset, ds_rs
         raise KeyError(f"Variable 'rsds' not found in dataset.")
     if "rlds" not in ds_rlds.data_vars:
         raise KeyError(f"Variable 'rlds' not found in dataset.")
-    # Placeholder for actual MRT calculation using the provided variables
-    mrt = mean_radiant_temperature(ds_rsus["rsus"], ds_rlus["rlus"], ds_rsds["rsds"], ds_rlds["rlds"], stat="sunlit")
+    rsus = _to_radiation_flux(ds_rsus["rsus"])
+    rlus = _to_radiation_flux(ds_rlus["rlus"])
+    rsds = _to_radiation_flux(ds_rsds["rsds"])
+    rlds = _to_radiation_flux(ds_rlds["rlds"])
+    mrt = mean_radiant_temperature(rsus, rlus, rsds, rlds, stat="sunlit")
     ds = xr.Dataset()
     ds["mrt"] = mrt
     ds["mrt"].attrs["units"] = "K"  # Assuming MRT is in Kelvin

@@ -1,6 +1,12 @@
 import sys
-sys.path.append('../utilities')
-from utils_download import download_files
+import os
+
+# Add the project root (c3s-cds)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# Add the utilities directory so inner modules can resolve each other
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utilities')))
+
+from scripts.utilities.utils_download import download_files
 
 
 

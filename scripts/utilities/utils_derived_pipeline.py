@@ -1,6 +1,6 @@
 import warnings
 from functools import partial
-
+import numpy as np
 import glob
 from pathlib import Path
 import xarray as xr
@@ -118,15 +118,17 @@ def load_files(
     ]
 
     # Resolve files
-    files = []
+    lists_files = []
     for path in download_paths:
+        logger.info(f"Resolving files in {path} for year {year}")
         matches = glob.glob(f"{path}/*{year}*.nc")
+        matches = np.sort(matches).tolist()  # Ensure consistent order
         if not matches:
             raise FileNotFoundError(f"No files found in {path} for {year}")
-        files.append(matches[0])
+        lists_files.append(matches)
 
-    logger.info(f"Resolved files for dependencies: {files}")    
-    return files, original_vars
+    logger.info(f"Resolved files for dependencies: {lists_files}")    
+    return lists_files, original_vars
 
 
 
@@ -160,7 +162,7 @@ def _preprocess_dataset(
 
 
 def load_and_fix_datasets(
-    files,
+    lists_files,
     dataset_name,
     year,
     month=None,
@@ -187,12 +189,12 @@ def load_and_fix_datasets(
 
     datasets = [
         xr.open_mfdataset(
-            [f],
+            single_list_of_files,
             chunks=chunks,
             preprocess=preprocess,
             combine="by_coords",
         )
-        for f in files
+        for single_list_of_files in lists_files
     ]
 
     return datasets
@@ -239,6 +241,10 @@ def build_output_path(
     year,
     month=None
 ):
+    # logger.info(files)
+    
+    files = files[0]  # Take the first file from the list of files for the first dependency as a template
+    
     dest_dir = load_output_path_from_row(var_row, dataset_name)
     os.makedirs(dest_dir, exist_ok=True)
 
@@ -246,7 +252,7 @@ def build_output_path(
     var_file = base_file.replace(original_vars[0], var)
 
     output_file = Path(dest_dir) / var_file
-
+    
     if month:
         output_file = Path(
             str(output_file).replace(str(year), f"{year}{month}")
