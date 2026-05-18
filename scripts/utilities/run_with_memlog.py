@@ -18,8 +18,10 @@ def monitor_memory(pid: int, stop: threading.Event, history: list) -> None:
                 for line in f:
                     if line.startswith("VmRSS:"):
                         val = int(line.split()[1])
-                        # Guardamos tiempo relativo en segundos y memoria en MB
-                        history.append((time.time() - start_time, val / (1024.0 ** 2)))
+                        # VmRSS aparece en kB en /proc/<pid>/status. Convertimos a GB.
+                        mem_gb = val / (1024.0 ** 2)
+                        # Guardamos tiempo relativo en segundos y memoria en GB
+                        history.append((time.time() - start_time, mem_gb))
                         break
         except (FileNotFoundError, IOError, OSError):
             pass
@@ -53,8 +55,10 @@ def main() -> int:
     try:
         import resource
         rusage = resource.getrusage(resource.RUSAGE_CHILDREN)
-        peak_mb = rusage.ru_maxrss / 1024 ** 2
-        print(f"\nPeak RSS (resource.RUSAGE_CHILDREN): {peak_mb:.2f} GB")
+        # ru_maxrss units are platform-dependent: on Linux it's in kilobytes.
+        # Convertimos a GB para mostrar de forma consistente con el resto del script.
+        peak_gb = rusage.ru_maxrss / (1024.0 ** 2)
+        print(f"\nPeak RSS (resource.RUSAGE_CHILDREN): {peak_gb:.2f} GB")
     except (ImportError, AttributeError):
         print("\n(Could not get rusage from resource module)")
 
