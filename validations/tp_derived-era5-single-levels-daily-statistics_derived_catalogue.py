@@ -6,8 +6,9 @@ import os
 # ---------------------------
 # 1. File path
 # ---------------------------
-var="ssrd"
-path = f"/lustre/gmeteo/PTICLIMA/DATA/REANALYSIS/ERA5/data_derived/medcof_1degree/day/{var}/*.nc"
+var="sfcwind"
+path = f"/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/derived/reanalysis-era5-single-levels/hourly/native/{var}/*.nc"
+#path = f"/lustre/gmeteo/PTICLIMA/DATA/REANALYSIS/ERA5/data_derived/medcof_1degree/day/{var}/*.nc"
 #path = f"/lustre/gmeteo/WORK/chantreuxa/pr_ERA5/raw/derived-era5-single-levels-daily-statistics/daily/native/{var}/**/*.nc"
 
 files = glob.glob(path, recursive=True)
@@ -47,8 +48,8 @@ print(f"lon [{lon_min}, {lon_max}], lat [{lat_min}, {lat_max}]")
 # 4. Subset region
 # ---------------------------
 ds_reg = ds.sel(
-    lon=slice(lon_min, lon_max),
-    lat=slice(lat_max, lat_min)  # ERA5 lat is descending
+    longitude=slice(lon_min, lon_max),
+    latitude=slice(lat_max, lat_min)  # ERA5 lat is descending
 )
 
 # ---------------------------
@@ -65,6 +66,9 @@ elif var == "e":
 elif var == "ssrd":
     tp_mm = tp / 86400
     var_cica="rsds"
+elif var == "sfcwind":
+    tp_mm = tp
+    var_cica="sfcwind"
 
 path_cica= f"/lustre/gmeteo/WORK/PROYECTOS/2022_C3S_Atlas/workflow/datasets/CICAv2/intermediate_products/provider/ERA5/{var_cica}/raw/*nc"
 files = glob.glob(path_cica, recursive=True)
@@ -89,7 +93,7 @@ print(f"Extracted '{var_cica}' for {region_name} with shape {tp_mm.shape}")
 # ---------------------------
 # 6. Area mean time series
 # ---------------------------
-tp_ts = tp_mm.mean(dim=["lat", "lon"]).sortby("time").compute()
+tp_ts = tp_mm.mean(dim=["latitude", "longitude"]).sortby("time").compute()
 tp2_ts = tp2_mm.mean(dim=["lat", "lon"]).sortby("time").compute()
     
 # ---------------------------
@@ -106,7 +110,7 @@ plt.figure(figsize=(12, 5))
 plt.plot(tp_ts["time"], tp_ts, color="blue", alpha=0.5, label="All years")
 plt.plot(tp_special["time"], tp_special, color="red", linewidth=1, label="2021–2024")
 plt.plot(tp2_ts["time"], tp2_ts, color="green", linestyle='--', alpha=0.5, label="CICAv2 (ERA5)")
-if var in ["e","ssrd"]:
+if var in ["e","ssrd","sfcwind"]:
     mon_tp_ts = tp_ts.resample(time="1ME").mean()
     mon_tp_special= tp_special.resample(time="1ME").mean()
     plt.plot(mon_tp_ts["time"], mon_tp_ts, color="blue", alpha=0.5, label="All years mon")

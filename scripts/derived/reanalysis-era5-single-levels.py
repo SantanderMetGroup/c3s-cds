@@ -127,19 +127,21 @@ def main():
                             month
                         )   
                 elif var == "mrt" and var_row["temporal_resolution"]=="hourly":
-                    start_time = time.time()
-                    process_derived(
-                        var,
-                        dataset,
-                        dependencies,
-                        df_parameters,
-                        var_row,
-                        year,
-                        operations.mrt_from_rsus_rlus_rsds_rlds,
-                        [derived_condition, derived_condition, raw_condition, raw_condition],
-                    )
-                    end_time = time.time()
-                    logging.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
+                    for month in MONTH_LIST:
+                        start_time = time.time()
+                        process_derived(
+                            var,
+                            dataset,
+                            dependencies,
+                            df_parameters,
+                            var_row,
+                            year,
+                            operations.mrt_from_rsus_rlus_rsds_rlds,
+                            [derived_condition, derived_condition, raw_condition, raw_condition],
+                            month
+                        )
+                        end_time = time.time()
+                        logging.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
                 elif var == "utci" and var_row["temporal_resolution"]=="hourly":
                     #timestamps for checking how fast is the processing
                     start_time = time.time()
