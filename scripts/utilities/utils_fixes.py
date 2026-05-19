@@ -1,5 +1,5 @@
 def fix_dim_time(dataset):
-    if "valid_time" in dataset.dims:
+    if "time" not in dataset.coords and "valid_time" in dataset.coords:
         dataset = dataset.rename({"valid_time": "time"})
     return dataset
 def get_lon_lat_names(dataset):

@@ -88,6 +88,7 @@ def load_files(
     df_parameters,
     condition_funcs,
     year,
+    month
 ):
     """
     Resolve and load file paths for the required dependency variables.
@@ -119,17 +120,44 @@ def load_files(
 
     # Resolve files
     lists_files = []
+
     for path in download_paths:
         logger.info(f"Resolving files in {path} for year {year}")
+
         matches = glob.glob(f"{path}/*{year}*.nc")
-        matches = np.sort(matches).tolist()  # Ensure consistent order
+        matches = np.sort(matches).tolist()
+
         if not matches:
-            raise FileNotFoundError(f"No files found in {path} for {year}")
+            raise FileNotFoundError(
+                f"No files found in {path} for {year}"
+            )
+
+        # Monthly filtering only when needed
+        if month:
+            monthly_matches = [
+                f for f in matches
+                if f"{year}{month}" in os.path.basename(f)
+            ]
+
+            if monthly_matches:
+                # monthly dataset -> use month-specific file
+                matches = monthly_matches
+                logger.info(
+                    f"Using monthly files for {path}: "
+                    f"{len(matches)} match(es)"
+                )
+            else:
+                # yearly dataset -> keep yearly file(s)
+                logger.info(
+                    f"No monthly file for {path}; "
+                    f"assuming yearly dataset"
+                )
+
         lists_files.append(matches)
 
-    logger.info(f"Resolved files for dependencies: {lists_files}")    
-    return lists_files, original_vars
+    logger.info(f"Resolved files for dependencies: {lists_files}")
 
+    return lists_files, original_vars
 
 
 
@@ -147,13 +175,16 @@ def _preprocess_dataset(
     - temporal selection
     - variable normalization
     """
-
+    logger.info(f"PREPROCESSING:{ds.encoding.get('source', 'unknown source')}")
     # Fix structure
     ds = fix_dataset(ds)
 
     # Time selection
     time_sel = f"{year}-{month}" if month else str(year)
-    ds = ds.sel(time=time_sel)
+    start = f"{time_sel}"
+    end = f"{time_sel}"
+
+    ds = ds.sel(time=slice(start, end))
 
     # Normalize variable names
     ds = normalize_var_names(ds, dataset_name)
@@ -185,6 +216,7 @@ def load_and_fix_datasets(
         dataset_name=dataset_name,
         year=year,
         month=month,
+        
     )
 
     datasets = [
@@ -253,7 +285,7 @@ def build_output_path(
 
     output_file = Path(dest_dir) / var_file
     
-    if month:
+    if month and f"{year}{month}" not   in str(output_file):
         output_file = Path(
             str(output_file).replace(str(year), f"{year}{month}")
         )
@@ -334,6 +366,7 @@ def process_derived(
         df_parameters,
         condition_funcs,
         year,
+        month
     )
 
     # ------------------------------------------------------------
