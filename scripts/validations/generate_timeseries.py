@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import sys
 import tempfile
 import shutil
+import logging
 
 # Go up TWO directories from validations/ (to reach c3s-cds root)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,11 +16,15 @@ sys.path.append(project_root)
 # Add the utilities directory to sys.path to resolve module imports
 scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(scripts_dir, 'utilities'))
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 50
 
 
 def main(catalog_path, output_root="validations"):
+    setup_logging()
     df = pd.read_csv(catalog_path)
 
     for index, row in df.iterrows():
@@ -30,7 +35,7 @@ def main(catalog_path, output_root="validations"):
         if pd.isna(data_path) or not isinstance(data_path, str):
             continue
 
-        print(f"Processing dataset {dataset_name} | variable: {variable}")
+        logger.info(f"Processing dataset {dataset_name} | variable: {variable}")
         generate_timeseries_for_variable(
             data_path, output_root, dataset_name, variable,
         )
@@ -73,7 +78,7 @@ def _reduce_batch(batch_files, var_name, temp_dir):
 
         out_path = os.path.join(temp_dir, f"batch_{os.path.basename(batch_files[0])}_{os.path.basename(batch_files[-1])}.nc")
         ts.to_netcdf(out_path)
-        print(f"  Batch {len(batch_files)} files -> {out_path} ({ts.sizes.get('time', 0)} timesteps)")
+        logger.info(f"  Batch {len(batch_files)} files -> {out_path} ({ts.sizes.get('time', 0)} timesteps)")
         return out_path
 
 
@@ -87,48 +92,48 @@ def generate_timeseries_for_variable(
     files = sorted(glob.glob(file_pattern))
 
     if not files:
-        print(f"Skipping: No NetCDF files found in {input_dir}")
+        logger.info(f"Skipping: No NetCDF files found in {input_dir}")
         return
 
     png_file = os.path.join(output_dir, f"{expected_var}_timeseries.png")
 
     if os.path.exists(png_file):
-        print(f"Skipping: Plot already exists for {expected_var} in {dataset_name}")
+        logger.info(f"Skipping: Plot already exists for {expected_var} in {dataset_name}")
         return
 
-    print(f"Found {len(files)} files in {input_dir}.")
+    logger.info(f"Found {len(files)} files in {input_dir}.")
 
     try:
         var_name = _pick_variable(files, expected_var)
     except Exception as e:
-        print(f"Error inspecting variables in {input_dir}: {e}")
+        logger.exception(f"Error inspecting variables in {input_dir}: {e}")
         return
 
     if len(files) > BATCH_SIZE:
-        print(f"Large dataset ({len(files)} files). Processing in batches of {BATCH_SIZE}...")
+        logger.info(f"Large dataset ({len(files)} files). Processing in batches of {BATCH_SIZE}...")
 
         temp_dir = tempfile.mkdtemp(prefix="ts_batches_")
         try:
             batch_paths = []
             for i in range(0, len(files), BATCH_SIZE):
                 batch = files[i : i + BATCH_SIZE]
-                print(f"Processing batch {i // BATCH_SIZE + 1}/{(len(files) + BATCH_SIZE - 1) // BATCH_SIZE} ({len(batch)} files)...")
+                logger.info(f"Processing batch {i // BATCH_SIZE + 1}/{(len(files) + BATCH_SIZE - 1) // BATCH_SIZE} ({len(batch)} files)...")
                 path = _reduce_batch(batch, var_name, temp_dir)
                 batch_paths.append(path)
 
-            print(f"Combining {len(batch_paths)} batch results...")
+            logger.info(f"Combining {len(batch_paths)} batch results...")
             ts = xr.open_mfdataset(batch_paths, combine="by_coords", join="override")[var_name]
             ts = ts.sortby("time")
 
             if ts.sizes.get("time", 0) > 10000:
-                print(f"Resampling to daily to reduce memory usage")
+                logger.info(f"Resampling to daily to reduce memory usage")
                 ts = ts.resample(time="1D").mean()
 
             ts = ts.compute()
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
     else:
-        print(f"Opening {len(files)} files directly...")
+        logger.info(f"Opening {len(files)} files directly...")
 
         def _preprocess(ds):
             if var_name in ds.data_vars:
@@ -148,7 +153,7 @@ def generate_timeseries_for_variable(
                 preprocess=_preprocess,
             )
         except Exception as e:
-            print(f"Error opening files in {input_dir}: {e}")
+            logger.exception(f"Error opening files in {input_dir}: {e}")
             return
 
         var_data = ds[var_name]
@@ -160,13 +165,13 @@ def generate_timeseries_for_variable(
             ts = var_data
 
         if ts.sizes.get("time", 0) > 10000:
-            print(f"Resampling to daily to reduce memory usage")
+            logger.info(f"Resampling to daily to reduce memory usage")
             ts = ts.resample(time="1D").mean()
 
         ts = ts.compute()
         ds.close()
 
-    print(f"Plotting and saving to {png_file}...")
+    logger.info(f"Plotting and saving to {png_file}...")
     plt.figure(figsize=(12, 6))
     ts.plot()
     plt.title(f"Timeseries: {dataset_name} - {var_name}")

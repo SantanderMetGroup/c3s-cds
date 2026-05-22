@@ -9,11 +9,7 @@ import os
 from derived_variable_dependencies import dataset_variable_mapping
 from utils_fixes import fix_dataset
 from utils import load_output_path_from_row, require_single_row, is_valid_netcdf
-# Configure logging
-import logging
 import dask.array as da
-# Configure logger if not already configured
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -242,7 +238,7 @@ def validate_and_build_inputs(datasets, dependencies):
 
     for ds in datasets:
         if len(ds.data_vars) != 1:
-            raise ValueError("Dataset must contain exactly one variable")
+            raise ValueError(f"Dataset must contain exactly one variable and has {len(ds.data_vars)}: {ds.data_vars}")
 
         ds_var = list(ds.data_vars)[0]
 
@@ -261,7 +257,6 @@ def validate_and_build_inputs(datasets, dependencies):
         datasets_by_var[dep]
         for dep in dependencies
     ]
-
     return inputs
 
 def build_output_path(
@@ -406,6 +401,7 @@ def process_derived(
     #inputs = [ds.persist() for ds in inputs]
 
     # Compute
+    logger.info(f"Launching function: {function.__name__} for variable {var}")
     result = function(*inputs)
     # Resample if needed
     if resampling:

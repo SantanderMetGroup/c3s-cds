@@ -1,6 +1,10 @@
 import sys
 sys.path.append('../utilities')
 from utils_download import download_files
+import logging
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
 
 def load_times(row):
     h3_list=['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
@@ -87,6 +91,7 @@ def get_output_filename(row,dataset,year,month):
     return f"{var}_{dataset}_{date}.nc"
 
 def main():
+    setup_logging()
     dataset="reanalysis-cerra-land"
     variables_file_path = f"../../requests/{dataset}.csv"
     download_files(dataset, variables_file_path, create_request, get_output_filename, request_frequency="monthly")

@@ -7,8 +7,15 @@ import pandas as pd
 from pathlib import Path
 import sys
 sys.path.append('../utilities')
+from logging_utils import setup_logging
 from utils import  load_output_path_from_row,require_single_row,is_valid_netcdf,VARIABLE_DEPENDENCIES
 from utils_derived_pipeline import get_original_var
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+setup_logging()
 def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     """
     Save a xarray.Dataset as a netCDF file.
@@ -71,13 +78,13 @@ def process_dataset(dataset: str, interpolation_file_default="ECMWF_Land_Medcof.
         output_dir.mkdir(parents=True, exist_ok=True)
         
         for file in sorted(glob.glob(str(orig_dir / "*.nc"))):
-            print(f"Processing file: {file}")
+            logger.info(f"Processing file: {file}")
             filename = os.path.basename(file)
             output_file = output_dir / filename
             
             if output_file.exists():
                 if is_valid_netcdf(Path(str(output_file).replace('zip','nc'))):
-                    print(f"File {output_file} already exists. Skipping...")
+                    logger.info(f"File {output_file} already exists. Skipping...")
                     continue
             
             ds = xr.open_dataset(file)
@@ -111,5 +118,5 @@ if __name__ == "__main__":
     ]
     
     for dataset in datasets:
-        print(f"Processing dataset: {dataset}")
+        logger.info(f"Processing dataset: {dataset}")
         process_dataset(dataset)

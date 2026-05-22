@@ -18,12 +18,7 @@ import argparse
 from pathlib import Path
 import pandas as pd
 import logging
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+from logging_utils import setup_logging
 
 
 def build_output_path(base_path, dataset, product_type, temporal_resolution, interpolation, variable):
@@ -128,6 +123,7 @@ def create_directories_from_csv(csv_file, dry_run=False):
 
 def main():
     """Main function to process all CSV files in the requests directory."""
+    setup_logging()
     parser = argparse.ArgumentParser(
         description='Create folder structure from CSV request files',
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -1,6 +1,10 @@
+import logging
 import sys
 sys.path.append('../utilities')
+from logging_utils import setup_logging
 from utils_download import download_files
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -60,7 +64,9 @@ def get_output_filename(row,dataset,year,month):
 
 
 def main():
+    setup_logging()
     dataset="derived-utci-historical"
+    logger.info(f"Starting download workflow for {dataset}")
     variables_file_path = f"../../requests/{dataset}.csv"
     download_files(dataset, variables_file_path, create_request, get_output_filename, request_frequency="monthly")
 

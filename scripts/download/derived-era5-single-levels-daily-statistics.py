@@ -1,6 +1,10 @@
 import sys
 sys.path.append('../utilities')
 from utils_download import download_files
+import logging
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -48,6 +52,7 @@ def create_request(row,year):
     }
 
 def main():
+    setup_logging()
     dataset = "derived-era5-single-levels-daily-statistics"
     variables_file_path = f"../../requests/{dataset}.csv"
     download_files(dataset, variables_file_path, create_request, get_output_filename)

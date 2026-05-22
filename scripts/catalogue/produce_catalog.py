@@ -9,7 +9,10 @@ import sys
 sys.path.append('../utilities')
 from utils import build_output_path, load_output_path_from_row, load_derived_dependencies
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+setup_logging()
 
 # Crear carpetas si no existen (in the catalogues directory at root level)
 os.makedirs("../../catalogues/catalogues", exist_ok=True)
@@ -86,13 +89,13 @@ def check_nc_file_for_year(directory, year):
     return len(glob.glob(pattern)) > 0
 
 def get_earliest_and_latest_dates(directory):
-    logging.info(f"Getting earliest and latest dates from directory: {directory}")
+    logger.info(f"Getting earliest and latest dates from directory: {directory}")
     nc_files = glob.glob(os.path.join(directory, '*.nc'))
     dates = []
     for file in nc_files:
         last_part = os.path.basename(file).split('_')[-1].replace('.nc','')
         date_part= os.path.basename(file).split('_')[2].replace('.nc','')
-        logging.info(f"Checking file: {file}, extracted date part: {date_part}")
+        logger.info(f"Checking file: {file}, extracted date part: {date_part}")
         if date_part.isdigit():
             dates.append(int(date_part))
         elif date_part.replace('-','').isdigit():

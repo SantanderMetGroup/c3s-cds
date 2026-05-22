@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def fix_dim_time(dataset):
     if "time" not in dataset.coords and "valid_time" in dataset.coords:
         dataset = dataset.rename({"valid_time": "time"})
@@ -34,20 +37,54 @@ def get_lon_lat_names(dataset):
                 break
 
     return lon_name, lat_name
-def convert_longitudes_to_360(dataset):
-    lon_name, _ = get_lon_lat_names(dataset)
 
-    if lon_name is not None:
-        dataset = (
-            dataset
-            .assign_coords({lon_name: (dataset[lon_name] % 360)})
-            .sortby(lon_name)
-        )
 
+def _deduplicate_longitude(dataset, lon_name):
+    """Drop duplicate longitude coordinates while preserving order."""
+    lon_values = dataset[lon_name].values
+    _, unique_index = np.unique(lon_values, return_index=True)
+    if unique_index.size != lon_values.size:
+        dataset = dataset.isel({lon_name: np.sort(unique_index)})
     return dataset
+
+
+def convert_longitudes_to_minus180_180(dataset):
+    """
+    Convert longitude coordinates from [0, 360] (or mixed) to [-180, 180),
+    then sort and drop duplicate longitudes if they appear at the dateline.
+
+    The function is xarray-native and works for both Dataset and DataArray.
+    """
+    lon_name, _ = get_lon_lat_names(dataset)
+    if lon_name is None:
+        return dataset
+
+    # Wrap to [-180, 180)
+    lon_180 = ((dataset[lon_name] + 180) % 360) - 180
+    dataset = dataset.assign_coords({lon_name: lon_180}).sortby(lon_name)
+    return _deduplicate_longitude(dataset, lon_name)
+
+
+
+
+def convert_longitudes_to_360(dataset):
+    """
+    Convert longitude coordinates to [0, 360), then sort and drop duplicates.
+
+    Use this when your workflow expects 0..360 longitudes.
+    """
+    lon_name, _ = get_lon_lat_names(dataset)
+    if lon_name is None:
+        return dataset
+
+    lon_360 = dataset[lon_name] % 360
+    dataset = dataset.assign_coords({lon_name: lon_360}).sortby(lon_name)
+    return _deduplicate_longitude(dataset, lon_name)
 
 def fix_dataset(dataset):
     dataset = fix_dim_time(dataset)
-    #dataset = convert_longitudes_to_360(dataset)
+    if "expver" in dataset.data_vars:
+        dataset = dataset.drop_vars("expver")
+    # dataset = convert_longitudes_to_minus180_180(dataset)
     return dataset
 

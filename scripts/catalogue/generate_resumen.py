@@ -1,5 +1,12 @@
 import os
 import pandas as pd
+import logging
+
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+
+setup_logging()
 
 # Paths corrected to match produce_catalog.py output
 # produce_catalog.py saves images to ../../catalogues/images
@@ -32,4 +39,4 @@ with open(md_file, "w", encoding="utf-8") as f:
     else:
         f.write("No all_catalogues.csv found.\n")
 
-print(f"Markdown file '{md_file}' generated successfully!")
+logger.info(f"Markdown file '{md_file}' generated successfully!")
