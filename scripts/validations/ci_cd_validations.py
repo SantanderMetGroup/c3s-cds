@@ -5,6 +5,9 @@ import glob
 import pandas as pd
 import xarray as xr
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 def validate_outliers(catalog_path, z_threshold=3.0, max_outlier_percent=1.0):
     """
@@ -23,27 +26,27 @@ def validate_outliers(catalog_path, z_threshold=3.0, max_outlier_percent=1.0):
         if pd.isna(data_path) or not isinstance(data_path, str):
             continue
             
-        print(f"Validating dataset: {dataset_name} | Variable: {expected_var}")
+        logger.info(f"Validating dataset: {dataset_name} | Variable: {expected_var}")
         
         file_pattern = os.path.join(data_path, "*.nc")
         files = glob.glob(file_pattern)
         
         if not files:
-            print(f" Warning: No NetCDF files found in {data_path}")
+            logger.warning(f"No NetCDF files found in {data_path}")
             continue
             
         try:
             # Open all years together by combining coordinates
             ds = xr.open_mfdataset(files, combine='by_coords')
         except Exception as e:
-            print(f" Error opening files in {data_path}: {e}")
+            logger.exception(f"Error opening files in {data_path}: {e}")
             failed = True
             continue
 
         var_name = expected_var if expected_var in ds.data_vars else list(ds.data_vars)[0]
         var_data = ds[var_name]
         
-        print("  -> Calculating mean, standard deviation, and Z-scores (this may take a while...)")
+        logger.info("  -> Calculating mean, standard deviation, and Z-scores (this may take a while...)")
         
         try:
             # Perform calculation ignoring NaNs
@@ -51,7 +54,7 @@ def validate_outliers(catalog_path, z_threshold=3.0, max_outlier_percent=1.0):
             std_val = var_data.std().compute().item()
             
             if std_val == 0:
-                print("  Warning: Standard deviation is 0 (constant data).")
+                logger.warning("Standard deviation is 0 (constant data).")
                 continue
                 
             # Calculate the number of non-null values
@@ -66,25 +69,25 @@ def validate_outliers(catalog_path, z_threshold=3.0, max_outlier_percent=1.0):
             else:
                 outlier_percent = 0.0
                 
-            print(f"  -> Outliers found: {num_outliers} / {total_elements} ({outlier_percent:.4f}%)")
+            logger.info(f"  -> Outliers found: {num_outliers} / {total_elements} ({outlier_percent:.4f}%)")
             
             if outlier_percent > max_outlier_percent:
-                print(f" FAIL: The outlier percentage ({outlier_percent:.2f}%) exceeds the allowed limit ({max_outlier_percent}%).")
+                logger.error(f"FAIL: The outlier percentage ({outlier_percent:.2f}%) exceeds the allowed limit ({max_outlier_percent}%).")
                 failed = True
             else:
-                print(" PASS: Outlier percentage is within the threshold.")
+                logger.info("PASS: Outlier percentage is within the threshold.")
                 
         except Exception as e:
-            print(f" Error during mathematical calculation for {dataset_name}: {e}")
+            logger.exception(f"Error during mathematical calculation for {dataset_name}: {e}")
             failed = True
         finally:
             ds.close()
 
     if failed:
-        print("\n Validation failed due to an unacceptable amount of outliers or processing errors.")
+        logger.error("Validation failed due to an unacceptable amount of outliers or processing errors.")
         sys.exit(1)
     else:
-        print("\n All datasets passed the outlier validation.")
+        logger.info("All datasets passed the outlier validation.")
         sys.exit(0)
 
 if __name__ == "__main__":

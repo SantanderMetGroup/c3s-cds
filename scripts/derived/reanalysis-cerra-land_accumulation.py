@@ -11,8 +11,9 @@ import sys
 from datetime import datetime
 sys.path.append('../utilities')
 from utils import load_output_path_from_row, require_single_row
+from logging_utils import setup_logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def write_to_netcdf(dataset: xr.Dataset, path: Path, var: str, lonlattime_name: list =["x,y,valid_time"]):
     """
@@ -43,7 +44,7 @@ def write_to_netcdf(dataset: xr.Dataset, path: Path, var: str, lonlattime_name: 
     )
     #dataset = dataset.assign_coords(lat=dataset.lat.astype('float32'), lon=dataset.lon.astype('float32'))
     encoding = {var: encoding_var}
-    logging.info(f"Writing {path} with encoding: {encoding} ")
+    logger.info(f"Writing {path} with encoding: {encoding} ")
     dataset.to_netcdf(path=path, encoding=encoding)
     dataset.close()
 
@@ -78,7 +79,7 @@ def check_time_gap(file1, file2, expected_timestep='1h'):
         raise ValueError(f"Gap detected between {file1} and {file2}: {time_diff}/{expected_timedelta}. Expected: {expected_timestep}."
                          f"Time in each dataset is {last_time_file1} and {first_time_file2}")
     else:
-        logging.info(f"No gap detected between {file1} and {file2}. time_diff: {expected_timedelta}")
+        logger.info(f"No gap detected between {file1} and {file2}. time_diff: {expected_timedelta}")
     ds1.close()
     ds2.close()
     del ds1, ds2
@@ -127,15 +128,16 @@ def accumulation(ds,var):
 
 
 if __name__ == "__main__":
+    setup_logging()
     dataset="reanalysis-cerra-land"
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
     derived_variables = df_parameters[df_parameters['product_type'] == 'derived']['filename_variable']
     derived_variables_list = derived_variables.tolist()
-    logging.info(f"List of derived variables: {derived_variables_list}")
+    logger.info(f"List of derived variables: {derived_variables_list}")
 
     for var in derived_variables_list:
-        logging.info(f"Calculating {var}")
+        logger.info(f"Calculating {var}")
         mask_input = (df_parameters['filename_variable'] == var) & (df_parameters['product_type'] == 'raw')
         input_row = require_single_row(df_parameters, mask_input, f"{var}/raw")
 
@@ -144,30 +146,30 @@ if __name__ == "__main__":
         # Use utility function to load input path
         var_download_path = load_output_path_from_row(input_row, dataset)
         var_files = np.sort(glob.glob(f"{var_download_path}/*.nc"))
-        print(f"{var_download_path}/*.nc")
-        logging.info(f"List of file variables: {var_files}")
+        logger.info(f"{var_download_path}/*.nc")
+        logger.info(f"List of file variables: {var_files}")
         # Iterate over files and process accumulation, need two files for last hour accumulation
         for i,file in enumerate(var_files):
             basename = os.path.basename(file)
-            print(basename)
+            logger.info(basename)
             date_str = basename.split('_')[-1].replace(".nc","")  
             date_obj = datetime.strptime(date_str, "%Y%m")
             year = date_obj.year
-            logging.info(f"Processing year: {year} and end year: {var_row.cds_years_end}")
+            logger.info(f"Processing year: {year} and end year: {var_row.cds_years_end}")
             if year > var_row.cds_years_end:
-                logging.info("Skipping file as it is after the end year")
+                logger.info("Skipping file as it is after the end year")
                 continue
             dest_dir = load_output_path_from_row(var_row, dataset)
             var_file = os.path.basename(file).replace(".nc", "_daily_accumulated.nc")
             output_file=Path(f"{dest_dir}/{var_file}")
-            logging.info(f"Saving calculated {var} to {dest_dir}")
+            logger.info(f"Saving calculated {var} to {dest_dir}")
             os.makedirs(dest_dir, exist_ok=True)   
             if output_file.exists():
-                logging.info(f"File {output_file} already exists. Skipping...")
+                logger.info(f"File {output_file} already exists. Skipping...")
                 continue
             if i+2 < len(var_files):
                 next_file=var_files[i+1]
-                logging.info(f"Processing file {file} and next file {next_file}")
+                logger.info(f"Processing file {file} and next file {next_file}")
                 check_time_gap(file, next_file, expected_timestep='1h')
                 file_list=[file,next_file]
             else:

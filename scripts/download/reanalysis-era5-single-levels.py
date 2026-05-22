@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 
 # Add the project root (c3s-cds)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -7,6 +8,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utilities')))
 
 from scripts.utilities.utils_download import download_files
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -61,6 +65,7 @@ def get_output_filename(row,dataset,year):
     return f"{var}_{dataset}_{date}.nc"
 
 def main():
+    setup_logging()
     dataset="reanalysis-era5-single-levels"
     variables_file_path = f"../../requests/{dataset}.csv"
     download_files(dataset, variables_file_path, create_request, get_output_filename)

@@ -1,8 +1,11 @@
 
 import xarray as xr
 import numpy as np
+import logging
 from thermofeel.thermofeel import calculate_relative_humidity_percent
 from xclim.indicators.convert import specific_humidity_from_dewpoint, mean_radiant_temperature, universal_thermal_climate_index
+
+logger = logging.getLogger(__name__)
 
 def copy_cf_metadata(src_ds: xr.Dataset, target_ds: xr.Dataset) -> xr.Dataset:
     """
@@ -151,7 +154,7 @@ def determine_solar_time_shift(ds: xr.Dataset, radiation_vars: list[str]) -> np.
             cell_methods = str(da.attrs.get("cell_methods", "")).lower()
             long_name = str(da.attrs.get("long_name", "")).lower()
             if not any([grib_step_type, grib_data_type, cell_methods, long_name]):
-                print(f"Warning: No relevant metadata found for variable '{var}' to determine accumulation.")
+                logger.warning(f"No relevant metadata found for variable '{var}' to determine accumulation.")
                 continue
             # Check if this specific variable is an accumulation
             if (
@@ -168,11 +171,11 @@ def determine_solar_time_shift(ds: xr.Dataset, radiation_vars: list[str]) -> np.
     if non_accumulated_vars and detected_vars:
         raise ValueError(f"Mixed accumulation types detected. Accumulated: {detected_vars}, Non-accumulated: {non_accumulated_vars}. Check dataset metadata for consistency.")
     if is_accumulated:
-        print(f"--> Accumulation detected in variables: {detected_vars}")
-        print("    * Action: Applying -1 hour shift for geometric alignment.\n")
+        logger.info(f"Accumulation detected in variables: {detected_vars}")
+        logger.info("Action: Applying -1 hour shift for geometric alignment.")
         return -np.timedelta64(1, "h")
         
-    print("--> No accumulated variables detected. No shift needed.\n")
+    logger.info("No accumulated variables detected. No shift needed.")
     return np.timedelta64(0, "h")
 def mrt_from_rsus_rlus_rsds_rlds(
     ds_rsus: xr.Dataset, 
@@ -198,7 +201,7 @@ def mrt_from_rsus_rlus_rsds_rlds(
     
     # 3. Apply the time shift BEFORE calculation if necessary (-1 hour)
     if time_shift != np.timedelta64(0, "h"):
-        print(f"Applying time shift of {time_shift} to all radiation variables for alignment.")
+        logger.info(f"Applying time shift of {time_shift} to all radiation variables for alignment.")
         ds_combined = ds_combined.assign_coords(time=ds_combined.time + time_shift)
 
     # 4. Extract and normalize radiation fluxes
@@ -210,8 +213,8 @@ def mrt_from_rsus_rlus_rsds_rlds(
     # Unify chunks within the combined dataset to prevent Dask fragmentation
     rsds, rlds, rsus, rlus = xr.unify_chunks(rsds, rlds, rsus, rlus)
     
-    print("Chunk structure unified:")
-    print("rsds chunks:", rsds.chunks)
+    logger.info("Chunk structure unified:")
+    logger.info(f"rsds chunks: {rsds.chunks}")
 
     # 5. Compute mean radiant temperature
     mrt = mean_radiant_temperature(rsus=rsus, rlus=rlus, rsds=rsds, rlds=rlds, stat="sunlit")
@@ -223,7 +226,7 @@ def mrt_from_rsus_rlus_rsds_rlds(
     
     # 6. Apply the reverse time shift AFTER calculation to match original ERA5 time (+1 hour)
     if time_shift != np.timedelta64(0, "h"):
-        print(f"Reversing time shift by applying +{abs(time_shift)} to output MRT.")
+        logger.info(f"Reversing time shift by applying +{abs(time_shift)} to output MRT.")
         ds_out = ds_out.assign_coords(time=ds_out.time - time_shift)
         
     return ds_out

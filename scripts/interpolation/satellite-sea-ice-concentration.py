@@ -9,6 +9,10 @@ from pyproj import Transformer
 import sys
 sys.path.append('../utilities')
 from utils import  load_output_path_from_row,require_rows,require_single_row
+import logging
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
 
 def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     """
@@ -33,6 +37,7 @@ def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     dataset.to_netcdf(path=path, encoding=encoding)
 
 def process_dataset(dataset):
+    setup_logging()
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
     cds_cdr_unique = df_parameters["cds_cdr_type"].unique().tolist()
@@ -70,10 +75,10 @@ def process_dataset(dataset):
             paths=np.sort(glob.glob(str(orig_dir / pattern)))
             for file in paths:
                 filename = os.path.basename(file)
-                print(file)
+                logger.info(file)
                 output_file = output_dir / filename
                 if output_file.exists():
-                    print(f"File {output_file} already exists. Skipping...")
+                    logger.info(f"File {output_file} already exists. Skipping...")
                     continue
                 ds=xr.open_dataset(file)
                 if "valid_time" in ds.dims:

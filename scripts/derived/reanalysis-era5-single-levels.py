@@ -11,34 +11,23 @@ from logging_utils import setup_logging
 from utils import load_derived_dependencies, raw_condition, derived_condition
 from utils_dask_slurm import load_slurm_dask_config
 from utils_derived_pipeline import process_derived
-root_logger = logging.getLogger()
-if root_logger.hasHandlers():
-    root_logger.handlers.clear()
-
-# Configure logging now
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+setup_logging()
 logger = logging.getLogger(__name__)
-
 
 MONTH_LIST = [f"{i:02d}" for i in range(1, 13)]
 
 PARAMS_SLURM = load_slurm_dask_config()
-logging.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
+logger.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
 
 
 
 def main():
-    setup_logging()
     client = Client(
     n_workers=1,
     threads_per_worker=PARAMS_SLURM["threads"],
     memory_limit=PARAMS_SLURM["memory_limit"]
-    )
-    logging.info("Starting derived variable calculations for reanalysis-era5-single-levels")
+)
+    logger.info("Starting derived variable calculations for reanalysis-era5-single-levels")
     dataset="reanalysis-era5-single-levels"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     variables_file_path = os.path.join(script_dir, "..", "..", "requests", f"{dataset}.csv")
@@ -48,7 +37,7 @@ def main():
     derived_variables = df_parameters[native_derived_condition]['filename_variable']
     derived_variables_list = derived_variables.tolist()
     for var in derived_variables_list:
-        logging.info(f"Calculating {var}")
+        logger.info(f"Calculating {var}")
         mask_var = (df_parameters['filename_variable'] == var) & (native_derived_condition)
         matches = df_parameters[mask_var]
         if matches.shape[0] == 0:
@@ -63,9 +52,9 @@ def main():
 
                 dependencies = derived_dependencies.get(var, [])
                 if not dependencies:
-                    logging.warning(f"No dependencies declared for derived variable {var}. Skipping...")
+                    logger.warning(f"No dependencies declared for derived variable {var}. Skipping...")
                     continue
-                logging.info(f"Derived variable {var} has dependencies: {dependencies}")
+                logger.info(f"Derived variable {var} has dependencies: {dependencies}")
                 if var == "sfcwind" and var_row["temporal_resolution"]=="daily":
                         resampling={"agg_freq": "1D", "agg_func": "mean"}                        
                         process_derived(
@@ -106,6 +95,7 @@ def main():
                             month
                         )
                 elif var == "rsus" and var_row["temporal_resolution"]=="hourly":
+                    continue
                     for month in MONTH_LIST:
                         process_derived(
                             var,
@@ -146,11 +136,10 @@ def main():
                             month,
                         )
                         end_time = time.time()
-                        logging.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
+                        logger.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
                 elif var == "utci" and var_row["temporal_resolution"]=="hourly":
                     #timestamps for checking how fast is the processing
                     start_time = time.time()
-                    print(start_time)
                     process_derived(
                         var,
                         dataset,
@@ -162,8 +151,7 @@ def main():
                         [raw_condition, derived_condition, derived_condition, derived_condition],
                     )
                     end_time = time.time()
-                    print(end_time)
-                    logging.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
+                    logger.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
                 else:
                     raise ValueError(f"Unexpected variable {var} with temporal resolution {var_row['temporal_resolution']}. Check configuration and if processing logic is implemented for this case.")
 if __name__ == "__main__":
