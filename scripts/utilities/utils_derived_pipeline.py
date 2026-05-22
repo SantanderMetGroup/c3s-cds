@@ -257,7 +257,6 @@ def validate_and_build_inputs(datasets, dependencies):
         datasets_by_var[dep]
         for dep in dependencies
     ]
-
     return inputs
 
 def build_output_path(
@@ -402,6 +401,7 @@ def process_derived(
     #inputs = [ds.persist() for ds in inputs]
 
     # Compute
+    logger.info(f"Launching function: {function.__name__} for variable {var}")
     result = function(*inputs)
     # Resample if needed
     if resampling:

@@ -309,5 +309,13 @@ def derived_condition(df, orig_var, dep):
     label = f"{orig_var}/derived"
     return condition, label
 
-
+def derived_condition_hourly_native(df, orig_var, dep):
+    condition = (
+        (df['filename_variable'] == orig_var) &
+        (df['product_type'] == 'derived') &
+        (df['interpolation'] == 'native') &
+        (df['temporal_resolution'] == 'hourly')
+    )
+    label = f"{orig_var}/derived"
+    return condition, label
 

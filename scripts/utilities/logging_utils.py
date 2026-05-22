@@ -4,8 +4,10 @@ from pathlib import Path
 
 
 DEFAULT_LOG_LEVEL = "INFO"
-DEFAULT_LOG_FORMAT = "%(asctime)s | %(levelname)s | %(filename)s | pid=%(process)d | %(message)s"
-DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_LOG_FORMAT = (
+    "[%(asctime)s] %(levelname)-7s %(filename)-32s | %(message)s"
+)
+DEFAULT_DATE_FORMAT = "%H:%M:%S"
 
 
 def _resolve_level(level: str | int | None) -> int:

@@ -245,7 +245,7 @@ def utci_from_t2m_sfcwind_hurs_mrt(ds_t2m: xr.Dataset, ds_sfcwind: xr.Dataset, d
     ds_t2m_renamed = ds_t2m.rename({"t2m": "tas"})
     utci = universal_thermal_climate_index(
         tas=ds_t2m_renamed["tas"],
-        sfcwind=ds_sfcwind["sfcwind"],
+        sfcWind=ds_sfcwind["sfcwind"],
         hurs=ds_hurs["hurs"],
         mrt=ds_mrt["mrt"],
         mask_invalid=False,
