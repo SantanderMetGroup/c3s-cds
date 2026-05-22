@@ -5,11 +5,6 @@ import xarray as xr
 import logging
 import yaml
 from derived_variable_dependencies import VARIABLE_DEPENDENCIES
-# Configure logging
-import logging
-
-# Configure logger if not already configured
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore")

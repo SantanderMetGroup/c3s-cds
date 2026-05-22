@@ -48,6 +48,8 @@ def convert_longitudes_to_360(dataset):
 
 def fix_dataset(dataset):
     dataset = fix_dim_time(dataset)
+    if "expver" in dataset.data_vars:
+        dataset = dataset.drop_vars("expver")
     #dataset = convert_longitudes_to_360(dataset)
     return dataset
 

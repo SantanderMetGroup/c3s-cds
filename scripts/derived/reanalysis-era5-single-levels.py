@@ -7,6 +7,7 @@ from dask.distributed import Client
 import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utilities')))
+from logging_utils import setup_logging
 from utils import load_derived_dependencies, raw_condition, derived_condition
 from utils_dask_slurm import load_slurm_dask_config
 from utils_derived_pipeline import process_derived
@@ -17,8 +18,11 @@ if root_logger.hasHandlers():
 # Configure logging now
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
+logger = logging.getLogger(__name__)
+
 
 MONTH_LIST = [f"{i:02d}" for i in range(1, 13)]
 
@@ -28,11 +32,12 @@ logging.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
 
 
 def main():
+    setup_logging()
     client = Client(
     n_workers=1,
     threads_per_worker=PARAMS_SLURM["threads"],
     memory_limit=PARAMS_SLURM["memory_limit"]
-)
+    )
     logging.info("Starting derived variable calculations for reanalysis-era5-single-levels")
     dataset="reanalysis-era5-single-levels"
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -138,7 +143,7 @@ def main():
                             year,
                             operations.mrt_from_rsus_rlus_rsds_rlds,
                             [derived_condition, derived_condition, raw_condition, raw_condition],
-                            month
+                            month,
                         )
                         end_time = time.time()
                         logging.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
