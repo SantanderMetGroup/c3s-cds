@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 DEFAULT_LOG_LEVEL = "INFO"
-DEFAULT_LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | pid=%(process)d | %(message)s"
+DEFAULT_LOG_FORMAT = "%(asctime)s | %(levelname)s | %(filename)s | pid=%(process)d | %(message)s"
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
