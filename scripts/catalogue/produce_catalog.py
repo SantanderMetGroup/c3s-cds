@@ -52,6 +52,8 @@ VALUE_MAP = {"downloaded": 0, "partial": 1, "not_downloaded": 2}
 
 def check_nc_file_for_year(directory, year):
     """Check if any NetCDF files matching the given year exist in the directory."""
+    logger.info(f"Checking for files in {directory} matching year {year}")
+    logger.info(f"Looking for pattern: {os.path.join(directory, f'*{year}*.nc')}")
     return bool(glob.glob(os.path.join(directory, f"*{year}*.nc")))
 
 
@@ -74,18 +76,44 @@ def get_earliest_and_latest_dates(directory):
     return (min(dates), max(dates)) if dates else (None, None)
 
 
-def check_origin_path(row, data_path):
+def check_origin_path(row, data_path,df):
     """Determine the source data path or joined dependency paths for derived dataset tracking."""
     if row["input_path"] == "CDS":
         return "CDS"
 
     if row["product_type"] != "derived":
         return data_path
+    if row["interpolation"] != "native":
+            mask = (
+                (df['filename_variable'] == row["filename_variable"]) & 
+                (df['interpolation'] == 'native') & 
+                (df['temporal_resolution'] == row["temporal_resolution"])
+            )
+            matched_rows = df[mask]
 
+            # Default to 'derived' as requested, unless we find an explicit 'raw' match
+            source_product_type = "derived"
+            
+            if not matched_rows.empty:
+                # 2. If a 'raw' native version exists, prioritize it
+                if (matched_rows['product_type'] == 'raw').any():
+                    source_product_type = "raw"
+                # 3. Explicitly handle if only 'derived' native versions exist
+                elif (matched_rows['product_type'] == 'derived').any():
+                    source_product_type = "derived"
+
+            return str(build_output_path(
+                row["input_path"], 
+                row["dataset"], 
+                source_product_type, 
+                row["temporal_resolution"], 
+                "native", 
+                row["filename_variable"]
+        ))
     deps = load_derived_dependencies().get(str(row["filename_variable"]), [])
     if not isinstance(deps, list) or not deps:
         deps = [row["filename_variable"]]
-
+    
     paths = [
         str(build_output_path(row["input_path"], row["dataset"], "raw", row["temporal_resolution"], "native", str(d)))
         for d in deps
@@ -110,12 +138,17 @@ def apply_fusion_rules(df, basename):
     return df
 
 
-def create_auxiliar_df(data):
+def create_auxiliar_df(data, data_ori):
     """Build an auxiliary DataFrame containing calculated status metadata and physical file checks."""
     rows = []
     for _, row in data.iterrows():
-        data_path = str(load_output_path_from_row(row))
-        origin_path = check_origin_path(row, data_path)
+        variable = row['filename_variable']
+        if f"/{variable}/" in row["output_path"]:
+            raw= True
+        else:
+            raw = False
+        data_path = str(load_output_path_from_row(row,raw=raw))
+        origin_path = check_origin_path(row, data_path, data_ori)
         
         start_exists = check_nc_file_for_year(data_path, row['cds_years_start'])
         final_exists = check_nc_file_for_year(data_path, row['cds_years_end'])
@@ -263,15 +296,15 @@ def plot_catalogue(df, varss, scess, project):
 
 def process_csv_file(file_path, type_data):
     """Execute pipeline steps on an individual CSV request file to update data records and generate plots."""
-    data = pd.read_csv(file_path)
+    data_ori = pd.read_csv(file_path)
     basename = os.path.basename(file_path)
     
-    data = apply_fusion_rules(data, basename)
+    data = apply_fusion_rules(data_ori, basename)
     data = data[data['product_type'] == type_data]
     if data.empty:
         return
 
-    aux_df, dataset_type = create_auxiliar_df(data)
+    aux_df, dataset_type = create_auxiliar_df(data,data_ori)
     project = os.path.splitext(basename)[0]
 
     df_final, varss, scess = build_catalogue_matrix(aux_df, dataset_type, project)
