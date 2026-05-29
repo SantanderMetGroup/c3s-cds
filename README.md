@@ -20,6 +20,8 @@ The environment is the one used in the c3s-atlas user tools: https://github.com/
 | [catalogues](https://github.com/SantanderMetGroup/c3s-cds/tree/main/catalogues) |  	CSV catalogues of datasets consolidated in Lustre or GPFS. The catalogues are updated through a nightly CI job.
 
 
+Most main folders include a local `README.md` with concise folder-level documentation.
+
 ## Downloaded data directory Structure
 
 The repository uses a structured directory path format to organize downloaded, derived, and interpolated data:
@@ -57,5 +59,4 @@ python scripts/create_folder_structure.py
 
 The script reads all CSV files in the `requests/` directory and creates the directory structure according to the format:
 `{base_path}/{product_type}/{dataset}/{temporal_resolution}/{interpolation}/{variable}/`
-
 
