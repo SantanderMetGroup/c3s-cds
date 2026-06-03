@@ -38,12 +38,13 @@ def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
 
 def process_dataset(dataset):
     setup_logging()
+    temporal_resolution = "monthly"
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
     cds_cdr_unique = df_parameters["cds_cdr_type"].unique().tolist()
     for cds_cdr in cds_cdr_unique:
         #Take first row with interpolation not native and product_type derived as reference for loading the reference grid
-        mask_interpolation = (df_parameters['interpolation'] != 'native') & (df_parameters['product_type'] == 'derived') & (df_parameters['cds_cdr_type'] == cds_cdr)
+        mask_interpolation = (df_parameters['interpolation'] != 'native') & (df_parameters['product_type'] == 'derived') & (df_parameters['cds_cdr_type'] == cds_cdr) & (df_parameters["temporal_resolution"] == temporal_resolution)
         interpolated_row= require_single_row(df_parameters, mask_interpolation, "interpolation not native and product_type derived")
         interpolation_file = interpolated_row.get('interpolation_file', 'land_sea_mask_grd025.nc')
         ds_ref=xr.open_dataset(f"/lustre/gmeteo/WORK/chantreuxa/cica/data/resources/reference-grids/{interpolation_file}")
@@ -59,10 +60,12 @@ def process_dataset(dataset):
                 continue
             if row["product_type"] != "derived":
                 continue
+            if row["temporal_resolution"] != temporal_resolution:
+                continue
             ds_variable=row["filename_variable"]
             
             # Use utility function to load input path (from raw data)
-            mask_raw = (df_parameters['filename_variable'] == ds_variable) & (df_parameters['product_type'] == 'raw') & (df_parameters['cds_cdr_type'] == cds_cdr)
+            mask_raw = (df_parameters['filename_variable'] == ds_variable) & (df_parameters['product_type'] == 'raw') & (df_parameters['cds_cdr_type'] == cds_cdr)& (df_parameters["temporal_resolution"] == temporal_resolution)
             raw_row = require_single_row(df_parameters, mask_raw, f"{ds_variable}/raw")
 
             orig_dir = load_output_path_from_row(raw_row, dataset)
