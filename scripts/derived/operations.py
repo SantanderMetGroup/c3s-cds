@@ -88,7 +88,8 @@ def sh_xclim(tdps: xr.Dataset, ps: xr.Dataset) -> xr.Dataset:
     if "ps" not in ps.data_vars:
         raise KeyError(f"Variable 'ps' not found in dataset.")
 
-    return specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'],method="tetens30")
+    huss = specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'], method="tetens30")
+    return huss.to_dataset()
 
 def sfcwind_from_u_v(ds_u10: xr.Dataset, ds_v10: xr.Dataset) -> xr.Dataset:
     """Calculate wind speed from components u and v."""

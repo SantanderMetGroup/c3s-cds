@@ -41,6 +41,13 @@ def main(catalog_path, output_root="validations"):
         )
 
 
+def _get_time_dim(da):
+    for dim in ("valid_time", "time"):
+        if dim in da.dims:
+            return dim
+    return "time"
+
+
 def _pick_variable(files, expected_var):
     with xr.open_dataset(files[0], decode_cf=True) as sample_ds:
         if expected_var in sample_ds.data_vars:
@@ -52,7 +59,11 @@ def _reduce_batch(batch_files, var_name, temp_dir):
     """Open a batch of files, compute the spatial mean, and save to a temp NetCDF."""
     def _preprocess(ds):
         if var_name in ds.data_vars:
-            return ds[[var_name]]
+            ds = ds[[var_name]]
+        if "time" not in ds.coords and "valid_time" in ds.coords:
+            ds = ds.rename({"valid_time": "time"})
+        elif "valid_time" in ds.coords and "time" in ds.dims:
+            ds = ds.drop_vars("valid_time", errors="ignore")
         return ds
 
     with xr.open_mfdataset(
@@ -78,7 +89,7 @@ def _reduce_batch(batch_files, var_name, temp_dir):
 
         out_path = os.path.join(temp_dir, f"batch_{os.path.basename(batch_files[0])}_{os.path.basename(batch_files[-1])}.nc")
         ts.to_netcdf(out_path)
-        logger.info(f"  Batch {len(batch_files)} files -> {out_path} ({ts.sizes.get('time', 0)} timesteps)")
+        logger.info(f"  Batch {len(batch_files)} files -> {out_path} ({ts.sizes.get('time', ts.sizes.get('valid_time', 0))} timesteps)")
         return out_path
 
 
@@ -123,11 +134,12 @@ def generate_timeseries_for_variable(
 
             logger.info(f"Combining {len(batch_paths)} batch results...")
             ts = xr.open_mfdataset(batch_paths, combine="by_coords", join="override")[var_name]
-            ts = ts.sortby("time")
+            time_dim = _get_time_dim(ts)
+            ts = ts.sortby(time_dim)
 
-            if ts.sizes.get("time", 0) > 10000:
+            if ts.sizes.get(time_dim, 0) > 10000:
                 logger.info(f"Resampling to daily to reduce memory usage")
-                ts = ts.resample(time="1D").mean()
+                ts = ts.resample({time_dim: "1D"}).mean()
 
             ts = ts.compute()
         finally:
@@ -137,7 +149,11 @@ def generate_timeseries_for_variable(
 
         def _preprocess(ds):
             if var_name in ds.data_vars:
-                return ds[[var_name]]
+                ds = ds[[var_name]]
+            if "time" not in ds.coords and "valid_time" in ds.coords:
+                ds = ds.rename({"valid_time": "time"})
+            elif "valid_time" in ds.coords and "time" in ds.dims:
+                ds = ds.drop_vars("valid_time", errors="ignore")
             return ds
 
         try:
@@ -164,9 +180,10 @@ def generate_timeseries_for_variable(
         else:
             ts = var_data
 
-        if ts.sizes.get("time", 0) > 10000:
+        time_dim = _get_time_dim(ts)
+        if ts.sizes.get(time_dim, 0) > 10000:
             logger.info(f"Resampling to daily to reduce memory usage")
-            ts = ts.resample(time="1D").mean()
+            ts = ts.resample({time_dim: "1D"}).mean()
 
         ts = ts.compute()
         ds.close()
