@@ -38,7 +38,6 @@ def load_times(row):
 def create_request(row,year,month="all"):
     var=row["cds_request_variable"]
     day=row["cds_day"]
-
     data_format=row["cds_data_format"]
     product_type=row["cds_product_type"]
     data_type=row["cds_data_type"]

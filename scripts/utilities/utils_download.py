@@ -69,6 +69,13 @@ def handle_special_zip(zip_path, delete_zip=False, request_frequency="yearly", e
 
     zip_path = Path(zip_path)
     zip_directory = zip_path.parent
+    if extracted_frequency == "variable":
+        if "/monthly/" in str(zip_path):
+            extracted_frequency = "monthly"
+        elif "/daily/" in str(zip_path):
+            extracted_frequency = "daily"
+        else:
+            raise ValueError(f"Could not determine extracted frequency from zip path {zip_path} with extracted_frequency set to 'variable'. Please specify the extracted_frequency explicitly as 'daily' or 'monthly'.")
     if request_frequency == "monthly":
         # detects YEAR and MONTH in ZIP name (YYYYMM)
         zip_date_pattern = re.compile(r'(\d{6})')
@@ -206,7 +213,6 @@ def process_single_request(
 
     if valid_file:
        return
-
     # download
     download_single_file(row["dataset"], request, path_file)
 
@@ -295,7 +301,4 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                 submit()
 
             for future in futures:
-                try:
                     future.result()
-                except Exception as e:
-                    logging.error(f"Failed to download file: {e}")
