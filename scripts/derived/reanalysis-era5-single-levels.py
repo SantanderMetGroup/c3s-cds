@@ -19,6 +19,84 @@ MONTH_LIST = [f"{i:02d}" for i in range(1, 13)]
 PARAMS_SLURM = load_slurm_dask_config()
 logger.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
 
+# =============================================================================
+# Derived Variable Configuration Guide
+# =============================================================================
+#
+# Instead of an if/elif chain, each variable is configured declaratively in
+# the VAR_CONFIG dictionary below.  To add a new derived variable you only
+# need to insert one entry — no new branches, no duplicated boilerplate.
+#
+# Key structure:  (variable_name, temporal_resolution) -> config dict
+#
+# Config fields:
+#   func        — The operation function from operations.py that performs the
+#                 computation (e.g. operations.rh_from_thermofeel).
+#   cond        — Condition function(s) used to locate the input data for
+#                 each dependency.  Can be a single callable (applied to all
+#                 dependencies) or a list of callables (one per dependency).
+#                 Common choices: raw_condition, derived_condition,
+#                 derived_condition_hourly_native.
+#   resampling  — Optional dict with "agg_freq" and "agg_func".  When set,
+#                 the result is resampled after computation (e.g. hourly
+#                 instantaneous → daily mean).
+#   timing      — Optional boolean.  When True the processing time for each
+#                 year is logged.
+#
+# Example — adding a hypothetical "myvar":
+#
+#     ("myvar", "hourly"): {
+#         "func": operations.myvar_compute,
+#         "cond": raw_condition,
+#     },
+#
+# The framework (process_derived) handles the rest: file resolution,
+# loading, preprocessing, computation, optional resampling, and saving.
+# =============================================================================
+VAR_CONFIG = {
+    ("sfcwind", "daily"): {
+        "func": operations.sfcwind_from_u_v,
+        "cond": raw_condition,
+        "resampling": {"agg_freq": "1D", "agg_func": "mean"},
+    },
+    ("sfcwind", "hourly"): {
+        "func": operations.sfcwind_from_u_v,
+        "cond": raw_condition,
+    },
+    ("hurs", "hourly"): {
+        "func": operations.rh_from_thermofeel,
+        "cond": raw_condition,
+    },
+    ("rsus", "hourly"): {
+        "func": operations.rsus_from_rsds_rsns,
+        "cond": raw_condition,
+    },
+    ("rlus", "hourly"): {
+        "func": operations.rlus_from_rlds_rlns,
+        "cond": raw_condition,
+    },
+    ("mrt", "hourly"): {
+        "func": operations.mrt_from_rsus_rlus_rsds_rlds,
+        "cond": [
+            derived_condition,
+            derived_condition,
+            raw_condition,
+            raw_condition,
+        ],
+        "timing": True,
+    },
+    ("utci", "hourly"): {
+        "func": operations.utci_from_t2m_sfcwind_hurs_mrt,
+        "cond": [
+            raw_condition,
+            derived_condition_hourly_native,
+            derived_condition,
+            derived_condition,
+        ],
+        "timing": True,
+    },
+}
+
 
 def _parse_args():
     parser = argparse.ArgumentParser(
@@ -90,104 +168,40 @@ def main():
                     logger.warning(f"No dependencies declared for derived variable {var}. Skipping...")
                     continue
                 logger.info(f"Derived variable {var} has dependencies: {dependencies}")
-                if var == "sfcwind" and var_row["temporal_resolution"]=="daily":
-                        resampling={"agg_freq": "1D", "agg_func": "mean"}                        
-                        process_derived(
+
+                key = (var, var_row["temporal_resolution"])
+                cfg = VAR_CONFIG.get(key)
+                if cfg is None:
+                    raise ValueError(
+                        f"Unexpected variable '{var}' with temporal resolution "
+                        f"'{var_row['temporal_resolution']}'. "
+                        f"Add an entry to VAR_CONFIG in this file."
+                    )
+
+                month_iter = MONTH_LIST if var_row["temporal_resolution"] == "hourly" else [None]
+
+                for month in month_iter:
+                    if cfg.get("timing"):
+                        start_time = time.time()
+
+                    process_derived(
                         var,
                         dataset,
                         dependencies,
                         df_parameters,
                         var_row,
                         year,
-                        operations.sfcwind_from_u_v,
-                        raw_condition,
-                        resampling=resampling
+                        cfg["func"],
+                        cfg["cond"],
+                        month=month,
+                        resampling=cfg.get("resampling"),
                     )
-                elif var == "sfcwind" and var_row["temporal_resolution"]=="hourly":
-                    for month in MONTH_LIST:
-                        process_derived(
-                            var,
-                            dataset,
-                            dependencies,
-                            df_parameters,
-                            var_row,
-                            year,
-                            operations.sfcwind_from_u_v,
-                            raw_condition,
-                            month
-                        )
-                elif var == "hurs" and var_row["temporal_resolution"]=="hourly":
-                    for month in MONTH_LIST:
-                        process_derived(
-                            var,
-                            dataset,
-                            dependencies,
-                            df_parameters,
-                            var_row,
-                            year,
-                            operations.rh_from_thermofeel,
-                            raw_condition,
-                            month
-                        )
-                elif var == "rsus" and var_row["temporal_resolution"]=="hourly":
-                    for month in MONTH_LIST:
-                        process_derived(
-                            var,
-                            dataset,
-                            dependencies,
-                            df_parameters,
-                            var_row,
-                            year,
-                            operations.rsus_from_rsds_rsns,
-                            raw_condition,
-                            month
-                        )
-                elif var == "rlus" and var_row["temporal_resolution"]=="hourly":
-                    for month in MONTH_LIST:
-                        process_derived(
-                            var,
-                            dataset,
-                            dependencies,
-                            df_parameters,
-                            var_row,
-                            year,
-                            operations.rlus_from_rlds_rlns,
-                            raw_condition,
-                            month
-                        )   
-                elif var == "mrt" and var_row["temporal_resolution"]=="hourly":
-                    for month in MONTH_LIST:
-                        start_time = time.time()
-                        process_derived(
-                            var,
-                            dataset,
-                            dependencies,
-                            df_parameters,
-                            var_row,
-                            year,
-                            operations.mrt_from_rsus_rlus_rsds_rlds,
-                            [derived_condition, derived_condition, raw_condition, raw_condition],
-                            month,
-                        )
+
+                    if cfg.get("timing"):
                         end_time = time.time()
-                        logger.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
-                elif var == "utci" and var_row["temporal_resolution"]=="hourly":
-                    for month in MONTH_LIST:
-                        start_time = time.time()
-                        process_derived(
-                            var,
-                            dataset,
-                            dependencies,
-                            df_parameters,
-                            var_row,
-                            year,
-                            operations.utci_from_t2m_sfcwind_hurs_mrt,
-                            [raw_condition, derived_condition_hourly_native, derived_condition, derived_condition],
-                            month,
+                        logger.info(
+                            f"Processing time for {var} in year {year}: "
+                            f"{end_time - start_time:.2f} seconds"
                         )
-                        end_time = time.time()
-                        logger.info(f"Processing time for {var} in year {year}: {end_time - start_time} seconds")
-                else:
-                    raise ValueError(f"Unexpected variable {var} with temporal resolution {var_row['temporal_resolution']}. Check configuration and if processing logic is implemented for this case.")
 if __name__ == "__main__":
     main()
