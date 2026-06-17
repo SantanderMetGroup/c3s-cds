@@ -40,8 +40,10 @@ logger.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
 #   resampling  — Optional dict with "agg_freq" and "agg_func".  When set,
 #                 the result is resampled after computation (e.g. hourly
 #                 instantaneous → daily mean).
-#   timing      — Optional boolean.  When True the processing time for each
-#                 year is logged.
+#   timing        — Optional boolean.  When True the processing time for each
+#                   year is logged.
+#   iterate_monthly — Optional boolean.  When True the work is split per month
+#                   (12 iterations per year).  Defaults to False (yearly).
 #
 # Example — adding a hypothetical "myvar":
 #
@@ -62,18 +64,22 @@ VAR_CONFIG = {
     ("sfcwind", "hourly"): {
         "func": operations.sfcwind_from_u_v,
         "cond": raw_condition,
+        "iterate_monthly": True,
     },
     ("hurs", "hourly"): {
         "func": operations.rh_from_thermofeel,
         "cond": raw_condition,
+        "iterate_monthly": True,
     },
     ("rsus", "hourly"): {
         "func": operations.rsus_from_rsds_rsns,
         "cond": raw_condition,
+        "iterate_monthly": True,
     },
     ("rlus", "hourly"): {
         "func": operations.rlus_from_rlds_rlns,
         "cond": raw_condition,
+        "iterate_monthly": True,
     },
     ("mrt", "hourly"): {
         "func": operations.mrt_from_rsus_rlus_rsds_rlds,
@@ -84,6 +90,7 @@ VAR_CONFIG = {
             raw_condition,
         ],
         "timing": True,
+        "iterate_monthly": True,
     },
     ("utci", "hourly"): {
         "func": operations.utci_from_t2m_sfcwind_hurs_mrt,
@@ -94,6 +101,7 @@ VAR_CONFIG = {
             derived_condition,
         ],
         "timing": True,
+        "iterate_monthly": True,
     },
 }
 
@@ -178,7 +186,7 @@ def main():
                         f"Add an entry to VAR_CONFIG in this file."
                     )
 
-                month_iter = MONTH_LIST if var_row["temporal_resolution"] == "hourly" else [None]
+                month_iter = MONTH_LIST if cfg.get("iterate_monthly") else [None]
 
                 for month in month_iter:
                     if cfg.get("timing"):
