@@ -9,7 +9,33 @@ from utils_derived_pipeline import process_derived
 
 logger = logging.getLogger(__name__)
 
-
+# =============================================================================
+# Derived Variable Configuration Guide
+# =============================================================================
+#
+# Each derived variable maps to an entry in VAR_CONFIG below.  The key is the
+# variable name (string), and the value is a dict with:
+#
+#   func  — The operation function from operations.py.
+#   cond  — Condition function used to locate the input data.
+#
+# Example:
+#
+#     "myvar": {
+#         "func": operations.myvar_compute,
+#         "cond": raw_condition,
+#     },
+# =============================================================================
+VAR_CONFIG = {
+    "hurs": {
+        "func": operations.rh_from_thermofeel,
+        "cond": raw_condition,
+    },
+    "huss": {
+        "func": operations.sh_xclim,
+        "cond": raw_condition,
+    },
+}
 
 
 def main():
@@ -38,28 +64,24 @@ def main():
                 logger.warning(f"No dependencies declared for derived variable {var}. Skipping...")
                 continue
 
-            if var == "hurs":
-                process_derived(
-                                var,
-                                dataset,
-                                dependencies,
-                                df_parameters,
-                                var_row,
-                                year,
-                                operations.rh_from_thermofeel,
-                                raw_condition
-                            )
-            if var == "huss":
-                process_derived(
-                                var,
-                                dataset,
-                                dependencies,
-                                df_parameters,
-                                var_row,
-                                year,
-                                operations.sh_xclim,
-                                raw_condition  
-                            )
+            cfg = VAR_CONFIG.get(var)
+            if cfg is None:
+                logger.warning(
+                    f"No configuration found for variable '{var}'. "
+                    f"Add an entry to VAR_CONFIG in this file."
+                )
+                continue
+
+            process_derived(
+                var,
+                dataset,
+                dependencies,
+                df_parameters,
+                var_row,
+                year,
+                cfg["func"],
+                cfg["cond"],
+            )
 
 
 

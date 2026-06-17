@@ -1,4 +1,5 @@
 
+import functools
 import xarray as xr
 import numpy as np
 import logging
@@ -6,6 +7,35 @@ from thermofeel.thermofeel import calculate_relative_humidity_percent
 from xclim.indicators.convert import specific_humidity_from_dewpoint, mean_radiant_temperature, universal_thermal_climate_index
 
 logger = logging.getLogger(__name__)
+
+
+def requires_vars(*specs):
+    """Validate that each positional Dataset argument contains the required variable.
+
+    Use as a decorator::
+
+        @requires_vars((0, "d2m"), (1, "t2m"))
+        def my_func(ds_a, ds_b):
+            ...
+
+    Parameters
+    ----------
+    *specs : tuple of (int, str)
+        One ``(argument_index, variable_name)`` tuple per dataset argument
+        that should be checked.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for idx, var_name in specs:
+                if var_name not in args[idx].data_vars:
+                    raise KeyError(
+                        f"Variable '{var_name}' not found in argument {idx} "
+                        f"of function '{func.__name__}'."
+                    )
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 def copy_cf_metadata(src_ds: xr.Dataset, target_ds: xr.Dataset) -> xr.Dataset:
     """
@@ -30,6 +60,7 @@ def copy_cf_metadata(src_ds: xr.Dataset, target_ds: xr.Dataset) -> xr.Dataset:
         target_ds[coord] = src_ds[coord]
             # Ensure CF-compliant metadata
     return target_ds
+@requires_vars((0, "d2m"), (1, "t2m"))
 def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
     """
     Calculate relative humidity (%) from a single xarray Dataset containing both dew-point and 2m air temperature.
@@ -49,12 +80,6 @@ def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
         A copy of the input dataset with a new DataArray "relative_humidity" (percent) added,
         and the original variables (td_var, t2_var) removed.
     """
-    # Validate inputs
-    if "d2m" not in ds_td.data_vars:
-        raise KeyError(f"Variable 'd2m' not found in dataset.")
-    if "t2m" not in ds_t2.data_vars:
-        raise KeyError(f"Variable 't2m' not found in dataset.")
-
     td = ds_td["d2m"]
     t2 = ds_t2["t2m"]
 
@@ -82,22 +107,14 @@ def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
 
     return rh_ds
 
+@requires_vars((0, "d2m"), (1, "ps"))
 def sh_xclim(tdps: xr.Dataset, ps: xr.Dataset) -> xr.Dataset:
-    if "d2m" not in tdps.data_vars:
-        raise KeyError(f"Variable 'd2m' not found in dataset.")
-    if "ps" not in ps.data_vars:
-        raise KeyError(f"Variable 'ps' not found in dataset.")
-
     huss = specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'], method="tetens30")
     return huss.to_dataset()
 
+@requires_vars((0, "u10"), (1, "v10"))
 def sfcwind_from_u_v(ds_u10: xr.Dataset, ds_v10: xr.Dataset) -> xr.Dataset:
     """Calculate wind speed from components u and v."""
-    if "u10" not in ds_u10:
-        raise KeyError("Variable 'u10' not found in dataset.")
-    if "v10" not in ds_v10:
-        raise KeyError("Variable 'v10' not found in dataset.")
-
     sfcwind = np.hypot(ds_u10["u10"], ds_v10["v10"])
     sfcwind.attrs["units"] = ds_u10["u10"].attrs.get("units")
 
@@ -105,24 +122,18 @@ def sfcwind_from_u_v(ds_u10: xr.Dataset, ds_v10: xr.Dataset) -> xr.Dataset:
 
 
 
+@requires_vars((0, "rsds"), (1, "rsns"))
 def rsus_from_rsds_rsns(ds_rsds: xr.Dataset, ds_rsns: xr.Dataset) -> xr.Dataset:
     """Calculate surface upwelling shortwave radiation from surface downwelling and net shortwave."""
-    if "rsds" not in ds_rsds.data_vars:
-        raise KeyError(f"Variable 'rsds' not found in dataset.")
-    if "rsns" not in ds_rsns.data_vars:
-        raise KeyError(f"Variable 'rsns' not found in dataset.")
     rsus = ds_rsds["rsds"] - ds_rsns["rsns"]
     ds = xr.Dataset()
     ds["rsus"] = rsus
     ds["rsus"].attrs["units"] = ds_rsds["rsds"].attrs["units"]
     return ds
 
+@requires_vars((0, "rlds"), (1, "rlns"))
 def rlus_from_rlds_rlns(ds_rlds: xr.Dataset, ds_rlns: xr.Dataset) -> xr.Dataset:
     """Calculate surface upwelling longwave radiation from surface downwelling and net longwave."""
-    if "rlds" not in ds_rlds.data_vars:
-        raise KeyError(f"Variable 'rlds' not found in dataset.")
-    if "rlns" not in ds_rlns.data_vars:
-        raise KeyError(f"Variable 'rlns' not found in dataset.")
     rlus = ds_rlds["rlds"] - ds_rlns["rlns"]
     ds = xr.Dataset()
     ds["rlus"] = rlus
@@ -178,6 +189,7 @@ def determine_solar_time_shift(ds: xr.Dataset, radiation_vars: list[str]) -> np.
         
     logger.info("No accumulated variables detected. No shift needed.")
     return np.timedelta64(0, "h")
+@requires_vars((0, "rsus"), (1, "rlus"), (2, "rsds"), (3, "rlds"))
 def mrt_from_rsus_rlus_rsds_rlds(
     ds_rsus: xr.Dataset, 
     ds_rlus: xr.Dataset, 
@@ -192,10 +204,6 @@ def mrt_from_rsus_rlus_rsds_rlds(
     # xr.merge automatically handles coordinate alignments
     rad_vars = ["rsus", "rlus", "rsds", "rlds"]
     ds_combined = xr.merge([ds_rsus, ds_rlus, ds_rsds, ds_rlds])
-    
-    for var in rad_vars:
-        if var not in ds_combined.data_vars:
-            raise KeyError(f"Required variable '{var}' missing from inputs.")
 
     # 2. Automatically determine the time shift required based on metadata
     time_shift = determine_solar_time_shift(ds_combined, rad_vars)
@@ -232,16 +240,9 @@ def mrt_from_rsus_rlus_rsds_rlds(
         
     return ds_out
 
+@requires_vars((0, "t2m"), (1, "sfcwind"), (2, "hurs"), (3, "mrt"))
 def utci_from_t2m_sfcwind_hurs_mrt(ds_t2m: xr.Dataset, ds_sfcwind: xr.Dataset, ds_hurs: xr.Dataset, ds_mrt: xr.Dataset) -> xr.Dataset:
     """Calculate UTCI from air temperature, surface wind speed, relative humidity, and mean radiant temperature."""
-    if "t2m" not in ds_t2m.data_vars:
-        raise KeyError(f"Variable 't2m' not found in dataset.")
-    if "sfcwind" not in ds_sfcwind.data_vars:
-        raise KeyError(f"Variable 'sfcwind' not found in dataset.")
-    if "hurs" not in ds_hurs.data_vars:
-        raise KeyError(f"Variable 'hurs' not found in dataset.")
-    if "mrt" not in ds_mrt.data_vars:
-        raise KeyError(f"Variable 'mrt' not found in dataset.")
     # xclim's utci expects 'tas', rename internally
     ds_t2m_renamed = ds_t2m.rename({"t2m": "tas"})
     utci = universal_thermal_climate_index(
