@@ -1,0 +1,2 @@
+dataset,dataset_type,filename_variable,cds_variable,cds_years_start,cds_years_end,cds_processinglevel,cds_sensor_on_satellite,cds_version,cds_temporal_resolution,cds_month,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file,is_multinetcdf_zip
+satellite-sea-surface-temperature,observations,analysed_sst,all,1980,2025,level_4,combined_product,3_0,monthly,all,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/satellite-sea-surface-temperature.py,raw,monthly,native,None,False

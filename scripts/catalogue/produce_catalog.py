@@ -9,7 +9,7 @@ import os
 import glob
 import logging
 import sys
-
+import re
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
@@ -41,7 +41,7 @@ TYPE_DATA_LIST = ["raw", "derived"]
 FUSION_RULES = {
     "ice": ["cds_cdr_type", "cds_version"],
     "surface-radiation": ["cds_climate_data_record_type", "cds_version"],
-    "soil-moisture": ["cds_type_of_record", "cds_version"],
+    "soil-moisture": ["cds_type_of_record", "cds_version","cds_time_aggregation"],
 }
 
 VALUE_MAP = {"downloaded": 0, "partial": 1, "not_downloaded": 2}
@@ -63,6 +63,7 @@ def get_earliest_and_latest_dates(directory):
     files = glob.glob(os.path.join(directory, "*.nc"))
     dates = []
 
+    date_pattern = re.compile(r'(?:^|_)(\d{4}|\d{6}|\d{8})(?:_|$)')
     for f in files:
         base = os.path.basename(f)
         try:
@@ -70,6 +71,12 @@ def get_earliest_and_latest_dates(directory):
             part = base.split("_")[2].replace(".nc", "").replace("-", "")
             if part.isdigit():
                 dates.append(int(part))
+            else:
+                # Fallback to regex search for 8-digit date
+                match = date_pattern.search(base)
+                if match:
+                    dates.append(int(match.group(1)))
+
         except Exception:
             continue
 
@@ -138,7 +145,7 @@ def apply_fusion_rules(df, basename):
     return df
 
 
-def create_auxiliar_df(data, data_ori):
+def create_auxiliar_df(data, data_ori, project):
     """Build an auxiliary DataFrame containing calculated status metadata and physical file checks."""
     rows = []
     for _, row in data.iterrows():
@@ -147,7 +154,7 @@ def create_auxiliar_df(data, data_ori):
             raw= True
         else:
             raw = False
-        data_path = str(load_output_path_from_row(row,raw=raw))
+        data_path = str(load_output_path_from_row(row,raw=raw,dataset=project))
         origin_path = check_origin_path(row, data_path, data_ori)
         
         start_exists = check_nc_file_for_year(data_path, row['cds_years_start'])
@@ -188,56 +195,53 @@ def create_auxiliar_df(data, data_ori):
 # ------------------------------------------------------------
 
 def build_catalogue_matrix(aux_df, dataset_type, project):
-    """Construct a status mapping matrix with a MultiIndex structure, duplicating rows on dynamic variable splits."""
+    """
+    Construct a status mapping matrix with a MultiIndex structure, 
+    safely handling dynamic variable splits.
+    """
+    if aux_df.empty:
+        return pd.DataFrame(), [], []
+
+    # 1. Determine simulations and scenarios
     if dataset_type in ["reanalysis", "observation"]:
-        simss = [project]
         scess = ["historical"]
+        working_df = aux_df.copy()
+        working_df['experiment'] = "historical"
     else:
-        simss = list(aux_df['experiment'].unique())
         scess = list(aux_df['experiment'].unique())
+        working_df = aux_df.copy()
 
-    varss = aux_df['variable'].unique()
-    cols = pd.MultiIndex.from_tuples([(v, s) for v in varss for s in scess])
-    df_final = pd.DataFrame(index=simss, columns=cols)
-
-    row_split_columns = ['temporal_resolution', 'cds_climate_data_record_type', 'cds_cdr_type', 'cds_type_of_record']
+    varss = list(working_df['variable'].unique())
     
-    # Mirroring the exact original process_variable execution map
-    for ind in list(df_final.index):
-        for col in df_final.columns:
-            variable = col[0]
-            filtered = aux_df[aux_df['variable'] == variable]
-            
-            if filtered.empty:
-                df_final.loc[ind, col] = None
-                continue
-                
-            present_splits = [c for c in row_split_columns if c in filtered.columns]
-            has_multiple_rows = len(filtered) > 1
+    # 2. Vectorized calculation of the status value (val: 0, 1, or 2)
+    conditions = [
+        (working_df['start_file_exists'] == True) & (working_df['final_file_exists'] == True),
+        working_df['earliest_date'].notna() | working_df['latest_date'].notna()
+    ]
+    working_df['status_val'] = np.select(conditions, [0, 1], default=2)
 
-            if has_multiple_rows:
-                logger.info(f"WARNING: Multiple rows found for variable '{variable}'")
-            
-            for _, row_aux in filtered.iterrows():
-                # Compute original mapping values
-                if row_aux['start_file_exists'] and row_aux['final_file_exists']:
-                    val = 0
-                elif pd.notna(row_aux['earliest_date']) or pd.notna(row_aux['latest_date']):
-                    val = 1
-                else:
-                    val = 2
-                
-                if has_multiple_rows:
-                    new_row = df_final.loc[ind].copy() if ind in df_final.index else pd.Series(index=df_final.columns, dtype=object)
-                    new_row[col] = val
-                    for c in present_splits:
-                        new_row[c] = row_aux[c]
-                    df_final = pd.concat([df_final, pd.DataFrame([new_row])], ignore_index=True)
-                else:
-                    df_final.loc[ind, col] = val
+    # 3. Identify your split columns
+    row_split_columns = [
+        'temporal_resolution', 'cds_climate_data_record_type', 
+        'cds_cdr_type', 'cds_type_of_record', 'cds_time_aggregation'
+    ]
+    present_splits = [c for c in row_split_columns if c in working_df.columns]
+
+    # 4. Use pivot_table to reshape the data safely
+    # If present_splits is empty, we fall back to a default row index like the 'project'
+    row_index = present_splits if present_splits else [project] * len(working_df)
+    
+    df_final = working_df.pivot_table(
+        index=row_index,
+        columns=['variable', 'experiment'],
+        values='status_val',
+        aggfunc='first'
+    )
+    
+    # Fill any remaining unmapped combinations with 2 (missing) or None if preferred
+    # df_final = df_final.fillna(2) 
 
     return df_final, varss, scess
-
 
 # ------------------------------------------------------------
 # Plot 
@@ -245,6 +249,7 @@ def build_catalogue_matrix(aux_df, dataset_type, project):
 
 def plot_catalogue(df, varss, scess, project):
     """Generate and save a visual matrix plot map representing data availability statuses."""
+    logger.info(f"Generating plot for project: {project} and df shape: {df}")
     colors = ["#43A055", "#FF8000", "#FF0000"]
 
     mat_values = np.array(df.values, dtype='float64')
@@ -296,6 +301,7 @@ def plot_catalogue(df, varss, scess, project):
 
 def process_csv_file(file_path, type_data):
     """Execute pipeline steps on an individual CSV request file to update data records and generate plots."""
+    logger.info(f"Processing CSV file: {file_path} for type: {type_data}")
     data_ori = pd.read_csv(file_path)
     basename = os.path.basename(file_path)
     
@@ -303,9 +309,8 @@ def process_csv_file(file_path, type_data):
     data = data[data['product_type'] == type_data]
     if data.empty:
         return
-
-    aux_df, dataset_type = create_auxiliar_df(data,data_ori)
     project = os.path.splitext(basename)[0]
+    aux_df, dataset_type = create_auxiliar_df(data,data_ori,project)
 
     df_final, varss, scess = build_catalogue_matrix(aux_df, dataset_type, project)
     

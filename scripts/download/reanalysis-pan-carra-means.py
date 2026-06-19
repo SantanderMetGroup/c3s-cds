@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_request(row,year,month):
+    logger.info(f"Creating request for year: {year}, month: {month}, variable: {row['cds_request_variable']}")
     var=row["cds_request_variable"]
     day=row["cds_day"]
     data_format=row["cds_data_format"]
@@ -39,6 +40,9 @@ def create_request(row,year,month):
         ]
     else:
          month=[month]
+    if var == "total_cloud_cover" and "year"==2013 and month==["01"]:
+        logger.warning("Skipping request for tcc in January 2013 due to known data issues.")
+        return None
     return {
         "variable": [var],
         "time_aggregation": time_aggregation,

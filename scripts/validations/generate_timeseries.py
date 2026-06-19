@@ -58,6 +58,17 @@ def _pick_variable(files, expected_var):
 def _reduce_batch(batch_files, var_name, temp_dir):
     """Open a batch of files, compute the spatial mean, and save to a temp NetCDF."""
     def _preprocess(ds):
+        if "valid_time" in ds.coords and "valid_time" not in ds.dims:
+            ds = (
+                ds
+                .drop_vars("time", errors="ignore")
+                .rename({"valid_time": "time"})
+                .expand_dims("time")
+            )
+
+        if "time" in ds.coords and "time" not in ds.dims and "valid_time" not in ds.coords:
+            ds = ds.expand_dims("time")
+
         if var_name in ds.data_vars:
             ds = ds[[var_name]]
         if "time" not in ds.coords and "valid_time" in ds.coords:
@@ -65,7 +76,13 @@ def _reduce_batch(batch_files, var_name, temp_dir):
         elif "valid_time" in ds.coords and "time" in ds.dims:
             ds = ds.drop_vars("valid_time", errors="ignore")
         return ds
+    f = batch_files[0]
 
+    ds = xr.open_dataset(f)
+
+    print(ds)
+    print(ds.coords)
+    print(ds.dims)
     with xr.open_mfdataset(
         batch_files,
         combine="by_coords",
@@ -148,6 +165,17 @@ def generate_timeseries_for_variable(
         logger.info(f"Opening {len(files)} files directly...")
 
         def _preprocess(ds):
+            if "valid_time" in ds.coords and "valid_time" not in ds.dims:
+                ds = (
+                    ds
+                    .drop_vars("time", errors="ignore")
+                    .rename({"valid_time": "time"})
+                    .expand_dims("time")
+                )
+
+            if "time" in ds.coords and "time" not in ds.dims and "valid_time" not in ds.coords:
+                ds = ds.expand_dims("time")
+
             if var_name in ds.data_vars:
                 ds = ds[[var_name]]
             if "time" not in ds.coords and "valid_time" in ds.coords:
@@ -155,7 +183,13 @@ def generate_timeseries_for_variable(
             elif "valid_time" in ds.coords and "time" in ds.dims:
                 ds = ds.drop_vars("valid_time", errors="ignore")
             return ds
+        f = files[0]
 
+        ds = xr.open_dataset(f)
+
+        print(ds)
+        print(ds.coords)
+        print(ds.dims)
         try:
             ds = xr.open_mfdataset(
                 files,

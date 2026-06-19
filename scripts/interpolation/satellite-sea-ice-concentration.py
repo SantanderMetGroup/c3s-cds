@@ -37,9 +37,10 @@ def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     dataset.to_netcdf(path=path, encoding=encoding)
 
 def process_dataset(dataset):
-    setup_logging()
+
     temporal_resolution = "monthly"
     variables_file_path = f"../../requests/{dataset}.csv"
+    logger.info(f"Loading variables from {variables_file_path}")
     df_parameters = pd.read_csv(variables_file_path)
     cds_cdr_unique = df_parameters["cds_cdr_type"].unique().tolist()
     for cds_cdr in cds_cdr_unique:
@@ -76,6 +77,7 @@ def process_dataset(dataset):
             
             pattern="*.nc"
             paths=np.sort(glob.glob(str(orig_dir / pattern)))
+            logger.info(f"Found {len(paths)} files for {ds_variable} in {orig_dir}")
             for file in paths:
                 filename = os.path.basename(file)
                 logger.info(file)
@@ -121,6 +123,8 @@ def process_dataset(dataset):
                 ds_i.close()
                 del ds,ds_i
 if __name__ == "__main__":
+    setup_logging()
     datasets=["satellite-sea-ice-concentration_nh","satellite-sea-ice-concentration_sh"]
     for dataset in datasets:
+        logger.info(f"Processing dataset: {dataset}")
         process_dataset(dataset)
