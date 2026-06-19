@@ -9,9 +9,12 @@ const DATASET_INFO = {
   'reanalysis-cerra-land': { label: 'CERRA Land', type: 'Reanalysis', period: '1985-2025' },
   'reanalysis-cerra-single-levels': { label: 'CERRA Single Levels', type: 'Reanalysis', period: '1988-2017' },
   'reanalysis-era5-single-levels': { label: 'ERA5 Single Levels', type: 'Reanalysis', period: '1940-2024' },
+  'reanalysis-pan-carra-means':{ label: 'PanCARRA Means', type: 'Reanalysis', period: '1986-2025' },
   'satellite-sea-ice-concentration_nh': { label: 'Sea Ice Concentration (NH)', type: 'Satellite', period: '1978-2025' },
   'satellite-sea-ice-concentration_sh': { label: 'Sea Ice Concentration (SH)', type: 'Satellite', period: '1978-2025' },
   'satellite-sea-level-global': { label: 'Sea Level Global', type: 'Satellite', period: '1993-2023' },
+  'satellite-sea-surface-temperature':{ label: 'Satellite SST', type: 'Satellite', period: '1980-2025' },
+  'satellite-soil-moisture': { label: 'Satellite Soil Moisture', type: 'Satellite', period: '1980-2025' },
   'satellite-surface-radiation-budget': { label: 'Surface Radiation Budget', type: 'Satellite', period: '1979-2025' },
 };
 
