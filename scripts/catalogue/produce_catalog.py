@@ -276,7 +276,7 @@ def plot_catalogue(df, varss, scess, project):
 
     # Ticks & Labels formatting matching exactly
     ax.set_xticks(np.arange(0, len(df.columns), len(scess)) + len(scess)/2)
-    ax.set_xticklabels([str(n) for n in varss], fontsize=10)
+    ax.set_xticklabels([str(col) for col in df.columns.get_level_values(0)], fontsize=10)
     ax.xaxis.tick_top()
 
     ax.set_yticks(np.arange(0.5, len(df.index) + 0.5))
@@ -326,6 +326,7 @@ def main():
         for filename in os.listdir(REQUEST_DIR):
             if "cordex" in filename or not filename.endswith('.csv'):
                 continue
+
             process_csv_file(os.path.join(REQUEST_DIR, filename), type_data)
 
     # Global concatenation assembly pass
