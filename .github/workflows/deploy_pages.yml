@@ -1,0 +1,75 @@
+name: Deploy GitHub Pages
+
+on:
+  schedule:
+    - cron: '30 0 * * *'   # 00:30 UTC every day (30min after catalogue update)
+  workflow_dispatch:
+  push:
+    branches: ["main"]     # optional: keep/remove as you prefer
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # Optional: only if your scripts require Python to generate/update site content
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Optional: install dependencies if needed by your build scripts
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      # Build the site into a temporary folder (_site)
+      # Adjust commands to match your current process.
+      - name: Build site
+        run: |
+          rm -rf _site
+          mkdir -p _site
+
+          # 1) Copy current docs static site content
+          cp -r docs/* _site/
+
+          # 2) Bring required assets from catalogues into the build output
+          #    (this keeps duplication OUT of git history)
+          mkdir -p _site/catalogues
+          cp -r catalogues/* _site/catalogues/ || true
+
+          # Add any extra generation steps your repo needs here
+          # python scripts/whatever.py
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
