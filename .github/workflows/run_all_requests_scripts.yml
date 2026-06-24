@@ -1,10 +1,10 @@
 name: Run All Requests Scripts
 
 on:
-  push
-  #schedule:
-  #  - cron: '0 0 */3 * *'
-  #workflow_dispatch
+  push:
+  schedule:
+    - cron: '0 3 * * *'   # 03:00 UTC daily (after SLURM runner is eligible at 02:55)
+  workflow_dispatch:
 
 jobs:
   run-scripts:
@@ -13,9 +13,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Make launcher executable
-        run: chmod +x scripts/launch_all_requests_scripts.sh
+        run: chmod +x scripts/download/launch_all_requests_scripts.sh
       - name: Run launcher with SLURM
         shell: bash -l {0}
         run: |
           mamba activate c3s-atlas
-          bash scripts/launch_all_requests_scripts.sh
+          bash scripts/download/launch_all_requests_scripts.sh
