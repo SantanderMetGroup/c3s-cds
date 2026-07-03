@@ -16,6 +16,8 @@ def create_request(row,year):
     day=row["cds_day"]
     month=row["cds_month"]
     cds_version=row["cds_version"]
+    cds_type_of_sensor=row["cds_type_of_sensor"]
+
 
 
     if day == "all":
@@ -34,7 +36,19 @@ def create_request(row,year):
             "07", "08", "09",
             "10", "11", "12"
         ]
-    return {
+    if cds_type_of_sensor == "combined":
+        return {
+        "variable":[variable],
+        "type_of_record": [type_of_record],
+        "time_aggregation": [time_aggregation],
+        "year": [str(year)],
+        "month": month,
+        "day":day,
+        "version": [cds_version],
+        "type_of_sensor": [cds_type_of_sensor]
+    }
+    else:
+        return {
         "variable":[variable],
         "type_of_record": [type_of_record],
         "time_aggregation": [time_aggregation],

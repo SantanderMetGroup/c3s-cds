@@ -1,0 +1,2 @@
+catalogues/images/*.png -merge
+catalogues/catalogues/*.csv -merge
