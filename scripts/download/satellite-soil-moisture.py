@@ -63,8 +63,9 @@ def get_output_filename(row,dataset,year):
         sufix = "icdr"
     else:
         sufix = "cdr"
-    if row.cds_version == "v202505":
-        sufix = f"{sufix}_v202505"
+    if row.cds_version :
+        sufix = f"{sufix}_{row.cds_version}"
+ 
     var=row["filename_variable"]
     date=f"{year}"
     return f"{var}_{dataset}_{date}_{sufix}.zip"
