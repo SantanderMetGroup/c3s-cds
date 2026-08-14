@@ -16,6 +16,8 @@ def create_request(row,year):
     day=row["cds_day"]
     month=row["cds_month"]
     cds_version=row["cds_version"]
+    cds_type_of_sensor=row["cds_type_of_sensor"]
+
 
 
     if day == "all":
@@ -34,7 +36,19 @@ def create_request(row,year):
             "07", "08", "09",
             "10", "11", "12"
         ]
-    return {
+    if cds_type_of_sensor == "combined":
+        return {
+        "variable":[variable],
+        "type_of_record": [type_of_record],
+        "time_aggregation": [time_aggregation],
+        "year": [str(year)],
+        "month": month,
+        "day":day,
+        "version": [cds_version],
+        "type_of_sensor": [cds_type_of_sensor]
+    }
+    else:
+        return {
         "variable":[variable],
         "type_of_record": [type_of_record],
         "time_aggregation": [time_aggregation],
@@ -49,8 +63,9 @@ def get_output_filename(row,dataset,year):
         sufix = "icdr"
     else:
         sufix = "cdr"
-    if row.cds_version == "v202505":
-        sufix = f"{sufix}_v202505"
+    if row.cds_version :
+        sufix = f"{sufix}_{row.cds_version}"
+ 
     var=row["filename_variable"]
     date=f"{year}"
     return f"{var}_{dataset}_{date}_{sufix}.zip"
