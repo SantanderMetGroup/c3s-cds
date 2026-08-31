@@ -1,0 +1,4 @@
+dataset,dataset_type,filename_variable,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file,is_multinetcdf_zip
+berkeley_earth_daily_1deg,observations,TAVG,https://berkeley-earth-temperature.s3.us-west-1.amazonaws.com/Global/Gridded/,/lustre/gmeteo/WORK/DATA/C3S-CDS/CICA-EXTERNAL-DATA/,scripts/download/berkeley_earth_daily_1deg.py,raw,daily,native,None,False
+berkeley_earth_daily_1deg,observations,TMAX,https://berkeley-earth-temperature.s3.us-west-1.amazonaws.com/Global/Gridded/,/lustre/gmeteo/WORK/DATA/C3S-CDS/CICA-EXTERNAL-DATA/,scripts/download/berkeley_earth_daily_1deg.py,raw,daily,native,None,False
+berkeley_earth_daily_1deg,observations,TMIN,https://berkeley-earth-temperature.s3.us-west-1.amazonaws.com/Global/Gridded/,/lustre/gmeteo/WORK/DATA/C3S-CDS/CICA-EXTERNAL-DATA/,scripts/download/berkeley_earth_daily_1deg.py,raw,daily,native,None,False

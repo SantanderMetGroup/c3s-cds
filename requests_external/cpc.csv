@@ -1,0 +1,2 @@
+dataset,dataset_type,filename_variable,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file,is_multinetcdf_zip
+cpc,observations,precip,https://downloads.psl.noaa.gov/Datasets/cpc_global_precip/,/lustre/gmeteo/WORK/DATA/C3S-CDS/CICA-EXTERNAL-DATA/,scripts/download/cpc.py,raw,daily,native,None,False

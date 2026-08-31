@@ -1,0 +1,2 @@
+dataset,dataset_type,filename_variable,input_path,output_path,script,product_type,temporal_resolution,interpolation,interpolation_file,is_multinetcdf_zip
+cru,observations,pre,https://data.ceda.ac.uk/badc/cru/data/cru_ts/cru_ts_4.09/data/pre/,/lustre/gmeteo/WORK/DATA/C3S-CDS/CICA-EXTERNAL-DATA/,scripts/download/cru.py,raw,monthly,native,None,False

@@ -1,0 +1,22 @@
+
+import sys
+sys.path.append('../utilities')
+import logging
+from logging_utils import setup_logging
+logger = logging.getLogger(__name__)
+from utils_download import download_files_external
+
+
+
+
+
+def main():
+    setup_logging()
+    dataset="cru"
+    CEDA_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4ZjhmaUpyaUtDY3hmaHhzdU5vazVEekdJdFZ4amhhTWNJa05ZX2U4MnhJIn0.eyJleHAiOjE3ODc4MzM5NjcsImlhdCI6MTc4NzU3NDc2NywianRpIjoiNzQ3ZjVjMGUtZWI1OS00YzU3LWI2ZjUtZjQyMTUxZGRjM2QzIiwiaXNzIjoiaHR0cHM6Ly9hY2NvdW50cy5jZWRhLmFjLnVrL3JlYWxtcy9jZWRhIiwic3ViIjoiNTJiYTI5MzUtM2QyYy00Y2FlLWJiZDktNjQ2NTJhYjg3ODVhIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoic2VydmljZXMtcG9ydGFsLWNlZGEtYWMtdWsiLCJzZXNzaW9uX3N0YXRlIjoiNTQ2MGU5YWMtNWRkNy00NDYwLTliMjEtMWE5MmNkY2FkODIwIiwiYWNyIjoiMSIsInNjb3BlIjoiZW1haWwgb3BlbmlkIHByb2ZpbGUgZ3JvdXBfbWVtYmVyc2hpcCIsInNpZCI6IjU0NjBlOWFjLTVkZDctNDQ2MC05YjIxLTFhOTJjZGNhZDgyMCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiQWRyaWFuIENoYW50cmV1eCIsInByZWZlcnJlZF91c2VybmFtZSI6ImNoYW50cmV1eCIsImdpdmVuX25hbWUiOiJBZHJpYW4iLCJmYW1pbHlfbmFtZSI6IkNoYW50cmV1eCIsImVtYWlsIjoiY2hhbnRyZXV4QGlmY2EuZXMifQ.pPsNUIKCB3AJkL_v54j-a-qEzU6f0Ib9TgKJHnA6v8pkXWFl1f7c6bCX4JzAkJPZeIhVt7eLvA5V4ZcRPP4p2pR8B7ircPZx5GVBDRkV8MjuGV8b9tple8h1E4xx2G1_sDYFf3OZKQj_C3juDVXWf7SfQiyKfuqxxfFye0Wv8qisv9C9357mtek74-3aNRfFTAhfSbDwGlebAaQLXnj3m4_7z7VeA7aRbUIgQYH2DiQ0pwYwPTL6BcxJX-KQ-Yp73EAJRM_MqMKlgQi_xAmMYzS5KrAHuze5fh1BwqXRdjmFNoXiBdbKMgHfNl_JESFOzBOzFAfDwfTgfcsAgA1SYA"
+
+    logger.info(f"Starting download workflow for {dataset}")
+    variables_file_path = f"../../requests_external/{dataset}.csv"
+    download_files_external(dataset, variables_file_path,selection_pattern=".nc.",Token=CEDA_TOKEN,filename_only=True)
+if __name__ == "__main__":
+    main()
