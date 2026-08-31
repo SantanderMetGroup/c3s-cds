@@ -23,9 +23,13 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 50
 
 
-def main(catalog_path, output_root="validations"):
+def main(catalog_path, output_root="validations", var=None, time_res=None):
     setup_logging()
     df = pd.read_csv(catalog_path)
+    if var:
+        df = df[df['variable'] == var]
+    if time_res:
+        df = df[df['temporal_resolution'] == time_res]
 
     for index, row in df.iterrows():
         dataset_name = row['dataset']
@@ -42,7 +46,7 @@ def main(catalog_path, output_root="validations"):
 
 
 def _get_time_dim(da):
-    for dim in ("valid_time", "time"):
+    for dim in ("valid_time", "time","time_counter", "forecast_time"):
         if dim in da.dims:
             return dim
     return "time"
@@ -57,7 +61,7 @@ def _pick_variable(files, expected_var):
 
 def _reduce_batch(batch_files, var_name, temp_dir):
     """Open a batch of files, compute the spatial mean, and save to a temp NetCDF."""
-    def _preprocess(ds):
+    def _normalize_time(ds):
         if "valid_time" in ds.coords and "valid_time" not in ds.dims:
             ds = (
                 ds
@@ -65,24 +69,25 @@ def _reduce_batch(batch_files, var_name, temp_dir):
                 .rename({"valid_time": "time"})
                 .expand_dims("time")
             )
-
         if "time" in ds.coords and "time" not in ds.dims and "valid_time" not in ds.coords:
             ds = ds.expand_dims("time")
 
-        if var_name in ds.data_vars:
-            ds = ds[[var_name]]
         if "time" not in ds.coords and "valid_time" in ds.coords:
             ds = ds.rename({"valid_time": "time"})
         elif "valid_time" in ds.coords and "time" in ds.dims:
             ds = ds.drop_vars("valid_time", errors="ignore")
+        elif "time_counter" in ds.coords and "time" not in ds.dims:
+            ds = ds.rename({"time_counter": "time"})
+        return ds
+    def _preprocess(ds):
+        ds=_normalize_time(ds)
+        if var_name in ds.data_vars:
+            ds = ds[[var_name]]
         return ds
     f = batch_files[0]
 
     ds = xr.open_dataset(f)
 
-    print(ds)
-    print(ds.coords)
-    print(ds.dims)
     with xr.open_mfdataset(
         batch_files,
         combine="by_coords",
@@ -236,7 +241,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate timeseries automatically from catalog.")
     parser.add_argument("--catalog", default="catalogues/catalogues/all_catalogues.csv", help="Path to the all_catalogues.csv file")
     parser.add_argument("--output-root", default="validations", help="Root directory for validations")
-    
+    parser.add_argument("--var", default=None, help="Variable name to plot")
+    parser.add_argument("--time_res", default=None, help="Time resolution for the dataset")
     args = parser.parse_args()
     
-    main(args.catalog, args.output_root)
+    main(args.catalog, args.output_root, args.var, args.time_res)

@@ -14,7 +14,7 @@ from logging_utils import setup_logging
 
 logger = logging.getLogger(__name__)
 
-def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
+def write_to_netcdf(dataset: xr.Dataset, path: str, variables: list):
     """
     Save a xarray.Dataset as a netCDF file.
 
@@ -25,15 +25,22 @@ def write_to_netcdf(dataset: xr.Dataset, path: str, var: str):
     ----------
     dataset (xarray.Dataset): data stored by dimension
     """
+
     chunksizes = (len(dataset.time), 50, 50)
+
     encoding_var = dict(
         dtype="float32",
         shuffle=True,
         zlib=True,
         complevel=1,
-        chunksizes=chunksizes
+        chunksizes=chunksizes,
     )
-    encoding = {var:encoding_var}
+
+    encoding = {
+        var: encoding_var.copy()
+        for var in variables
+    }
+
     dataset.to_netcdf(path=path, encoding=encoding)
 
 def process_dataset(dataset):
@@ -99,29 +106,38 @@ def process_dataset(dataset):
                 #lon_src=(("y", "x"), lon_src),
                 #lat_src=(("y", "x"), lat_src),
                 #)
-                
-                # interpolate data
-                int_attr = {
-                    "interpolation_method": "conservative_normed",
+                if ds_variable in ["ice_conc","raw_ice_conc_values"]:
+                    variables = ["ice_conc", "raw_ice_conc_values"]
+                else:
+                    variables = [ds_variable]
 
-                    # SOURCE GRID (IMPORTANT for LAEA sea ice)
-                    "src_lats": ds["lat"].values,
-                    "src_lons": ds["lon"].values,
+                ds_var_list = []
 
-                    # TARGET GRID (your reference lat/lon grid)
-                    "lats": ds_ref["lat"].values,
-                    "lons": ds_ref["lon"].values,
+                for ds_variable in variables:
+                    logger.info(f"Interpolating {ds_variable} from {ds['lat'].shape}x{ds['lon'].shape} to {ds_ref['lat'].shape}x{ds_ref['lon'].shape}")
+                    int_attr = {
+                        "interpolation_method": "conservative_normed",
+                        "src_lats": ds["lat"].values,
+                        "src_lons": ds["lon"].values,
+                        "lats": ds_ref["lat"].values,
+                        "lons": ds_ref["lon"].values,
+                        "var_name": ds_variable,
+                    }
 
-                    "var_name": ds_variable
-                }
+                    INTER = xesmfCICA.Interpolator(int_attr)
 
-                INTER = xesmfCICA.Interpolator(int_attr)
+                    ds_var_i = INTER(ds)
+                    logger.info(f"Interpolated {ds_variable} from {ds['lat'].shape}x{ds['lon'].shape} to {ds_var_i['lat'].shape}x{ds_var_i['lon'].shape}")
+                    logger.info(f"ds_var_i: {ds_var_i}")
+                    
+                    ds_var_list.append(ds_var_i)
 
-                ds_i = INTER(ds)
-                write_to_netcdf(ds_i, str(output_file), ds_variable)
+                ds_i = xr.merge(ds_var_list)
+                logger.info(f"ds_i: {ds_i}")
+                write_to_netcdf(ds_i, str(output_file), variables)
                 ds.close()
                 ds_i.close()
-                del ds,ds_i
+                del ds, ds_i
 if __name__ == "__main__":
     setup_logging()
     datasets=["satellite-sea-ice-concentration_nh","satellite-sea-ice-concentration_sh"]

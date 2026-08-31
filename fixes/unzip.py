@@ -21,6 +21,9 @@ root_SST_SAT = Path(
 root_ORAS5 = Path(
     "/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/raw/reanalysis-oras5/monthly/native/ileadfra/"
 )
+root_satellite_precipitation = Path(
+    "/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/raw/satellite-precipitation/monthly/native/sat_gauge_precip/"
+)
 def extract_all_netcdfs_in_dir(root_dir: Path):
     zips = sorted(root_dir.glob("*.zip"))
     if not zips:
@@ -42,4 +45,4 @@ def extract_multizip_files_in_dir(root_dir: Path):
 
 if __name__ == "__main__":
     #extract_all_netcdfs_in_dir(root_SST_SAT)
-    extract_multizip_files_in_dir(root_ORAS5)
+    extract_multizip_files_in_dir(root_satellite_precipitation)

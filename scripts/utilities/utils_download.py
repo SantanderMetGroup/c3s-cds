@@ -1,4 +1,6 @@
 
+import requests
+import gzip
 import cdsapi
 import calendar
 import datetime
@@ -90,7 +92,7 @@ def handle_special_zip(zip_path, delete_zip=False, request_frequency="yearly", e
         date_digits = 8
     elif extracted_frequency == "monthly":
         date_digits = 6
-    nc_date_pattern = re.compile(rf'(\d{{{date_digits}}})(?=.*\.nc$)')
+    nc_date_pattern = re.compile(rf'(\d{{{date_digits}}})(?=.*\.nc4?$)')
     if not zipfile.is_zipfile(zip_path):
         logging.info(f"File {zip_path} is not a zip archive; nothing to extract")
         return
@@ -109,7 +111,8 @@ def handle_special_zip(zip_path, delete_zip=False, request_frequency="yearly", e
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         for nc_file in zip_ref.namelist():
             if not nc_file.endswith(".nc"):
-                continue
+                if not nc_file.endswith(".nc4"):
+                    continue
 
             # ---- extract real daily date ----
             date_nc = nc_date_pattern.search(nc_file)
@@ -191,9 +194,20 @@ def zip_extractor(path_file, multinetcdf_zip, request_frequency, extracted_frequ
     else:
         extract_zip_and_delete(path_file)
 
+def extract_gz(gz_path):
+    output_path = gz_path.with_suffix("")
 
-        
+    if output_path.exists():
+        logging.info(f"Already extracted: {output_path.name}")
+        return
 
+    logging.info(f"Extracting: {gz_path.name}")
+
+    with gzip.open(gz_path, "rb") as f:
+        output_path.write_bytes(f.read())
+
+
+            
 def process_single_request(
     row,
     dataset,
@@ -302,3 +316,91 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
 
             for future in futures:
                     future.result()
+
+
+def download_files_external(dataset, variables_file_path, selection_pattern=None,Token=None,filename_only=False):
+    """
+    Download files for the specified variables and years.
+
+    Parameters
+    ----------
+    dataset : str
+        The dataset name.
+    variables_file_path : str
+        Path to the CSV file containing the variables and other parameters.
+    get_output_filename_func : function
+        Function to get the output filename.
+    request_frequency : str, optional
+        Frequency of the requests ("yearly", "monthly", "daily").
+    """
+    df_parameters = pd.read_csv(variables_file_path)
+    if Token:
+                headers = {
+            "Authorization": f"Bearer {Token}"
+        }
+    
+    for index, row in df_parameters.iterrows():
+        if row["product_type"] != "raw":
+            continue
+
+        dest_dir = build_output_path(
+            row["output_path"], 
+            dataset, 
+            row["product_type"],
+            row["temporal_resolution"],
+            row["interpolation"],
+            row["filename_variable"]
+        )
+        
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        url= row["input_path"]
+        logging.info(f"Processing variable {row['filename_variable']} for dataset {dataset} with url {url}")
+
+        if Token:
+            response = requests.get(url, headers=headers)
+        else:
+            response = requests.get(url)
+        # Get list of files
+        html = response.text
+        print(f"Downloading files from {url} with selection pattern {selection_pattern}")
+        files = [
+            line.split('href="')[1].split('"')[0]
+            for line in html.splitlines()
+            if 'href="' in line
+            and (
+                selection_pattern is None
+                or selection_pattern  in line
+            )
+        ]
+
+        # Download files
+        for filename in files:
+
+            if filename_only:
+                filename = filename.split("/")[-1].split("?")[0]
+            else:
+                filename = url + filename
+
+            download_file(
+                filename,
+                dest_dir,
+                headers=headers if Token else None,
+            )
+                # Extract .gz files
+        for file in dest_dir.glob("*.gz"):
+            extract_gz(file)
+
+def download_file(url, output_dir, headers=None):
+
+    output_file = output_dir / url.split("/")[-1].split("?")[0]
+
+    if output_file.exists():
+        logging.info(f"Already downloaded: {output_file.name}")
+        return
+
+    logging.info(f"Downloading: {url}")
+
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+
+    output_file.write_bytes(response.content)

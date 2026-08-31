@@ -7,9 +7,10 @@ import xarray as xr
 import logging
 import os
 from derived_variable_dependencies import dataset_variable_mapping
-from utils_fixes import fix_dataset
+from utils_fixes import fix_dataset, check_and_fix_time_attributes
 from utils import load_output_path_from_row, require_single_row, is_valid_netcdf
 import dask.array as da
+
 logger = logging.getLogger(__name__)
 
 
@@ -249,6 +250,8 @@ def validate_and_build_inputs(datasets, dependencies):
 
     # Validate dependencies
     missing = [d for d in dependencies if d not in datasets_by_var]
+    logger.info(f"Validated dependencies. Missing: {missing}, Found: {list(datasets_by_var.keys())}")
+    logger.info(f"dependencies: {dependencies}, datasets_by_var keys: {list(datasets_by_var.keys())}")
     if missing:
         raise ValueError(f"Missing dependencies: {missing}")
 
@@ -421,6 +424,7 @@ def process_derived(
 
     logging.info(f"Dask graph size: {n_tasks:,} tasks")
     logging.info(f"Output chunks: {result.chunks}")
+    check_and_fix_time_attributes(result, time_dim="time")
     result.to_netcdf(output_file)
 
     # Cleanup

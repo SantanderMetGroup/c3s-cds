@@ -1,14 +1,18 @@
 import operations
 import pandas as pd
 import logging
+from dask.distributed import Client
+
 import sys
 sys.path.append('../utilities')
 from utils import  require_single_row, load_derived_dependencies,  raw_condition
 from logging_utils import setup_logging
 from utils_derived_pipeline import process_derived
+from utils_dask_slurm import load_slurm_dask_config
 
 logger = logging.getLogger(__name__)
-
+PARAMS_SLURM = load_slurm_dask_config()
+logger.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
 # =============================================================================
 # Derived Variable Configuration Guide
 # =============================================================================
@@ -39,7 +43,12 @@ VAR_CONFIG = {
 
 
 def main():
-    setup_logging()
+    setup_logging(force=True)
+    client = Client(
+    n_workers=1,
+    threads_per_worker=PARAMS_SLURM["threads"],
+    memory_limit=PARAMS_SLURM["memory_limit"]
+)
     dataset="derived-era5-single-levels-daily-statistics"
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)

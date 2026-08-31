@@ -115,9 +115,19 @@ def sh_xclim(tdps: xr.Dataset, ps: xr.Dataset) -> xr.Dataset:
 @requires_vars((0, "u10"), (1, "v10"))
 def sfcwind_from_u_v(ds_u10: xr.Dataset, ds_v10: xr.Dataset) -> xr.Dataset:
     """Calculate wind speed from components u and v."""
-    sfcwind = np.hypot(ds_u10["u10"], ds_v10["v10"])
-    sfcwind.attrs["units"] = ds_u10["u10"].attrs.get("units")
-
+    sfcwind = xr.apply_ufunc(
+        np.hypot, 
+        ds_u10["u10"], 
+        ds_v10["v10"], 
+        dask="allowed", 
+        output_dtypes=[float]
+    )
+    sfcwind.name = "sfcwind"
+    sfcwind.attrs = {
+        "units": ds_u10["u10"].attrs.get("units", "m s-1"),
+        "standard_name": "wind_speed",
+        "long_name": "Near-Surface Wind Speed"
+    }
     return xr.Dataset({"sfcwind": sfcwind})
 
 

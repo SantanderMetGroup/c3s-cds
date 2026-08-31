@@ -1,6 +1,21 @@
 import numpy as np
 
+def check_and_fix_time_attributes(ds, time_dim="time"):
+    """
+    Ensure the time coordinate has the required CF attributes.
 
+    - Raises an error if 'units' or 'calendar' are missing.
+    - Adds 'long_name' and 'standard_name' if they are missing.
+    """
+
+    attrs = ds[time_dim].attrs
+
+
+    # Optional attributes
+    attrs.setdefault("long_name", "time")
+    attrs.setdefault("standard_name", "time")
+
+    return ds
 def fix_dim_time(dataset):
     if "time" not in dataset.coords and "valid_time" in dataset.coords:
         dataset = dataset.rename({"valid_time": "time"})

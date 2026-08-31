@@ -162,10 +162,15 @@ def save_triple_map(
     chunks: dict[str, int] | None = None,
     figsize: tuple[int, int] = (18, 5),
     dpi: int = 150,
+    field_a: xr.DataArray | None = None,
+    field_b: xr.DataArray | None = None,
 ) -> Path:
-    field_a = _time_mean_field(file_path_a, variable_name_a, time_period_a, chunks=chunks)
-    field_b = _time_mean_field(file_path_b, variable_name_b, time_period_b, chunks=chunks)
-
+    if field_a is None:
+        field_a = _time_mean_field(file_path_a, variable_name_a, time_period_a, chunks=chunks)
+    if field_b is None:
+        field_b = _time_mean_field(file_path_b, variable_name_b, time_period_b, chunks=chunks)
+    print (f"Field A shape: {field_a.shape}, Field B shape: {field_b.shape}")
+    print(field_a)
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 

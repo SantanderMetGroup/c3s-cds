@@ -24,6 +24,7 @@ dataset_variable_mapping = {
         "ps": "sp",
         "t2mx": "t2m",
         "t2mn": "t2m",
+        "t2m": "t2m",
     },
     "insitu-gridded-observations-europe": {
 
