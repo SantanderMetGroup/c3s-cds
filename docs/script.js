@@ -2,6 +2,8 @@ const DATA_DIR = 'data';
 const HEATMAP_DIR = 'img/heatmaps';
 const VALIDATION_DIR = 'img/validations';
 
+// Keep Dataset overrides here. This is optional — new datasets will be displayed
+// automatically even if they are not present in this object.
 const DATASET_INFO = {
   'derived-era5-single-levels-daily-statistics': { label: 'ERA5 Daily Statistics', type: 'Reanalysis', period: '1940-2024' },
   'derived-utci-historical': { label: 'UTCI Historical', type: 'Reanalysis', period: '2000-2020' },
@@ -18,10 +20,36 @@ const DATASET_INFO = {
   'satellite-surface-radiation-budget': { label: 'Surface Radiation Budget', type: 'Satellite', period: '1979-2025' },
 };
 
-const VALIDATION_FOLDER_MAP = {
-  'satellite-sea-ice-concentration_nh': 'satellite-sea-ice-concentration',
-  'satellite-sea-ice-concentration_sh': 'satellite-sea-ice-concentration',
-};
+// Determine a friendly label/type/period for datasets not present in DATASET_INFO.
+function getDatasetInfo(name, rows) {
+  if (DATASET_INFO && DATASET_INFO[name]) return DATASET_INFO[name];
+
+  // Human-friendly label: replace dashes/underscores and title-case words
+  const label = name.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  // Try to infer type from first row
+  let type = '';
+  if (rows && rows.length > 0 && rows[0].dataset_type) type = rows[0].dataset_type;
+
+  // Compute period from earliest_date/latest_date fields in rows (years)
+  let minYear = null, maxYear = null;
+  if (rows && rows.length > 0) {
+    rows.forEach(r => {
+      const e = (r.earliest_date && r.earliest_date !== 'nan') ? Number(String(r.earliest_date).slice(0,4)) : null;
+      const l = (r.latest_date && r.latest_date !== 'nan') ? Number(String(r.latest_date).slice(0,4)) : null;
+      if (e && (!minYear || e < minYear)) minYear = e;
+      if (l && (!maxYear || l > maxYear)) maxYear = l;
+    });
+  }
+  const period = (minYear && maxYear) ? `${minYear}-${maxYear}` : '';
+
+  return { label, type, period };
+}
+
+// Map dataset name to the validation folder — remove NH/SH suffixes automatically
+function datasetValidationDir(name) {
+  return name.replace(/_(nh|sh)$/, '');
+}
 
 function getStatus(row) {
   const start = row.start_file_exists && row.start_file_exists.toLowerCase() === 'true';
@@ -42,10 +70,6 @@ function formatDate(d) {
 
 function datasetHeatmapPath(name) {
   return `${HEATMAP_DIR}/${name}_catalogue.png`;
-}
-
-function datasetValidationDir(name) {
-  return VALIDATION_FOLDER_MAP[name] || name;
 }
 
 function escapeHtml(s) {
