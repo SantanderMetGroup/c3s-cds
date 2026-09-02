@@ -47,7 +47,8 @@ async function buildDashboard() {
       datasets[ds].push(row);
     }
 
-    const dsNames = Object.keys(DATASET_INFO).filter(d => datasets[d] && datasets[d].length > 0);
+    // Show any dataset available in the CSV. Use DATASET_INFO only as overrides.
+    const dsNames = Object.keys(datasets).filter(d => datasets[d] && datasets[d].length > 0);
     const allVars = Object.values(datasets).flat().length;
     const completeCount = Object.values(datasets).flat().filter(r => getStatus(r) === 'complete').length;
 
@@ -63,7 +64,8 @@ async function buildDashboard() {
     grid.innerHTML = '';
 
     for (const name of dsNames) {
-      const info = DATASET_INFO[name] || { label: name, type: '', period: '' };
+      // Use the helper in script.js to get either an override or a derived label/type/period
+      const info = (typeof getDatasetInfo === 'function') ? getDatasetInfo(name, datasets[name]) : (DATASET_INFO[name] || { label: name, type: '', period: '' });
       const rows = datasets[name];
       const vars = new Set(rows.map(r => r.variable)).size;
       const statusCounts = { complete: 0, partial: 0, missing: 0 };
