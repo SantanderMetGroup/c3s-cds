@@ -64,8 +64,12 @@ async function buildDetail() {
     const dsName = params.get('dataset');
     if (!dsName) { showError('detail-error', 'No dataset specified. <a href="index.html">Back to dashboard</a>'); return; }
 
-    const info = DATASET_INFO[dsName];
-    if (!info) { showError('detail-error', 'Unknown dataset: ' + escapeHtml(dsName) + '. <a href="index.html">Back to dashboard</a>'); return; }
+    // Load the catalog CSV first so we can both derive metadata and list variables
+    const allData = await loadCSV(DATA_DIR + '/all_catalogues.csv');
+    const rows = allData.filter(r => r.dataset === dsName);
+
+    // Use getDatasetInfo (uses DATASET_INFO override or derives from rows)
+    const info = (typeof getDatasetInfo === 'function') ? getDatasetInfo(dsName, rows) : (DATASET_INFO[dsName] || { label: dsName, type: '', period: '' });
 
     document.getElementById('page-title').textContent = info.label;
     document.getElementById('page-subtitle').textContent = dsName + ' — ' + info.type + ' — ' + info.period;
@@ -84,12 +88,9 @@ async function buildDetail() {
     heatmap.src = datasetHeatmapPath(dsName);
     heatmap.alt = info.label + ' heatmap';
 
-    const allData = await loadCSV(DATA_DIR + '/all_catalogues.csv');
-    const rows = allData.filter(r => r.dataset === dsName);
-
     const tbody = document.getElementById('variable-body');
-    if (rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No entries found for this dataset.</td></tr>';
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No entries found for this dataset. The consolidated CSV may not include this dataset; run produce_catalog.py and copy docs/data/all_catalogues.csv.</td></tr>';
     } else {
       tbody.innerHTML = rows.map(row => {
         const status = getStatus(row);
