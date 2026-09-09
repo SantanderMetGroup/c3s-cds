@@ -318,7 +318,7 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
                     future.result()
 
 
-def download_files_external(dataset, variables_file_path, selection_pattern=None,Token=None,filename_only=False):
+def download_files_external(dataset, variables_file_path, selection_pattern=None,Token=None,filename_only=False, replace_str=None):
     """
     Download files for the specified variables and years.
 
@@ -328,6 +328,14 @@ def download_files_external(dataset, variables_file_path, selection_pattern=None
         The dataset name.
     variables_file_path : str
         Path to the CSV file containing the variables and other parameters.
+    selection_pattern : str, optional
+        Pattern to filter the files to download.
+    Token : str, optional
+        Authentication token for the API.
+    filename_only : bool, optional
+        If True, only the filename will be used for the output.
+    replace_str : str, optional
+        String to replace in the filenames.
     get_output_filename_func : function
         Function to get the output filename.
     request_frequency : str, optional
@@ -384,15 +392,73 @@ def download_files_external(dataset, variables_file_path, selection_pattern=None
             download_file(
                 filename,
                 dest_dir,
+                replace_str=replace_str,
                 headers=headers if Token else None,
             )
+            # Rename files
+            if replace_str:
+                rename_files_in_directory(dest_dir, replace_str[0], replace_str[1])
                 # Extract .gz files
         for file in dest_dir.glob("*.gz"):
             extract_gz(file)
 
-def download_file(url, output_dir, headers=None):
 
-    output_file = output_dir / url.split("/")[-1].split("?")[0]
+
+
+'''
+TODO
+Para GPCC:
+
+Añadir nuevo input a la funcion de descargas (replace_string:("precip","precipitation)
+Añadir funcion que efectue el cambio de nombre (entrada la carpeta, leera los *nc y efectuara los cambios "precipitation" por "precip")
+Verificar que el chequeo tenga en cuenta el nuevo nmbre y no el viejo'''
+
+def rename_files_in_directory(directory, old_string, new_string):
+    """
+    Rename files in the specified directory by replacing old_string with new_string in their names.
+    Uses word boundary matching to avoid partial replacements (e.g., "precip" inside "precipitation").
+
+    Parameters
+    ----------
+    directory : str or Path
+        The directory containing the files to rename.
+    old_string : str
+        The string to be replaced in the filenames.
+    new_string : str
+        The string to replace old_string with in the filenames.
+    """
+    directory = Path(directory)
+    pattern = re.compile(r'\b' + re.escape(old_string) + r'\b')
+    for file_path in directory.glob("*"):
+        if file_path.is_file() and pattern.search(file_path.name):
+            new_name = pattern.sub(new_string, file_path.name)
+            new_path = file_path.with_name(new_name)
+            logging.info(f"Renaming {file_path} to {new_path}")
+            file_path.rename(new_path)
+
+
+
+def download_file(url, output_dir, headers=None, replace_str=None):
+
+    """
+    Download a file from a URL and save it to the specified output directory.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the file to download.
+    output_dir : str or Path
+        The directory where the downloaded file will be saved.
+    headers : dict, optional
+        The headers to include in the request.
+    replace_str : tuple, optional
+        A tuple containing the old string and the new string to replace it with in the filename.
+    """
+    filename = url.split("/")[-1].split("?")[0]
+    if replace_str:
+        pattern = re.compile(r'\b' + re.escape(replace_str[0]) + r'\b')
+        filename = pattern.sub(replace_str[1], filename)
+    output_file = output_dir / filename
 
     if output_file.exists():
         logging.info(f"Already downloaded: {output_file.name}")
