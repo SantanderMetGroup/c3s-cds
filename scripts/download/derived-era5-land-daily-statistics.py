@@ -9,17 +9,20 @@ logger = logging.getLogger(__name__)
 
 
 
-def get_output_filename(row,dataset,year):
+def get_output_filename(row,dataset,year,month="01"):
+    if row["request_resolution"] == "yearly":
+        var=row["filename_variable"]
+        date=f"{year}"
+        return f"{var}_{dataset}_{date}.nc"
+    else:
+        var=row["filename_variable"]
+        date=f"{year}{month}"
+        return f"{var}_{dataset}_{date}.nc"
 
-    var=row["filename_variable"]
-    date=f"{year}"
-    return f"{var}_{dataset}_{date}.nc"
-
-def create_request(row,year):
+def create_request(row,year,month="01"):
     var=row["cds_request_variable"]
     daily_statistic=row["cds_daily_statistic"]
     day=row["cds_day"]
-    month=row["cds_month"]
     time_zone=row["cds_time_zone"]
     frequency=row["cds_frequency"]
     product_type=row["cds_product_type"]
@@ -33,13 +36,15 @@ def create_request(row,year):
             "25", "26", "27", "28", "29", "30",
             "31"
         ]
-    if month == "all":
+    if month == "all" and row["request_resolution"] == "yearly":
         month = [
             "01", "02", "03",
             "04", "05", "06",
             "07", "08", "09",
             "10", "11", "12"
         ]
+    else:
+        month = [month]
     return {
         "variable": [var],
         "product_type": [product_type],
@@ -55,7 +60,7 @@ def main():
     setup_logging()
     dataset = "derived-era5-land-daily-statistics"
     variables_file_path = f"../../requests/{dataset}.csv"
-    download_files(dataset, variables_file_path, create_request, get_output_filename)
+    download_files(dataset, variables_file_path, create_request, get_output_filename,request_frequency="monthly")
 
 if __name__ == "__main__":
     main()

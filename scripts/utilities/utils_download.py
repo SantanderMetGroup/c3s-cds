@@ -265,6 +265,8 @@ def download_files(dataset, variables_file_path, create_request_func, get_output
             row["interpolation"],
             row["filename_variable"]
         )
+        if "request_resolution" in row:
+            request_frequency = row["request_resolution"]
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         year_list = list(range(row["cds_years_start"], row["cds_years_end"] + 1))
