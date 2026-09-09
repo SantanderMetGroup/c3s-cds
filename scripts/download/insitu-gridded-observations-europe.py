@@ -34,9 +34,10 @@ def create_request(row):
 
 def main():
     setup_logging()
-    dataset = "insitu-gridded-observations-europe"
-    logger.info(f"Starting download workflow for {dataset}")
-    variables_file_path = f"../../requests/{dataset}.csv"
-    download_files(dataset, variables_file_path, create_request, get_output_filename, request_frequency="whole")
+    dataset_list = ["insitu-gridded-observations-europe_v31","insitu-gridded-observations-europe_v33"]
+    for dataset in dataset_list:
+        logger.info(f"Starting download workflow for {dataset}")
+        variables_file_path = f"../../requests/{dataset}.csv"
+        download_files(dataset, variables_file_path, create_request, get_output_filename, request_frequency="whole")
 if __name__ == "__main__":
     main()
