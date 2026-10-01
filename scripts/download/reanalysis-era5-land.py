@@ -1,0 +1,70 @@
+import sys
+import os
+import logging
+
+# Add the project root (c3s-cds)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# Add the utilities directory so inner modules can resolve each other
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../utilities')))
+
+from scripts.utilities.utils_download import download_files
+from logging_utils import setup_logging
+
+logger = logging.getLogger(__name__)
+
+
+
+def create_request(row,year,month="01"):
+    var=row["cds_request_variable"]
+    day=row["cds_day"]
+    data_format=row["cds_data_format"]
+    product_type=row["cds_product_type"]
+    download_format=row["cds_download_format"]
+
+    time= [
+        "00:00", "01:00", "02:00",
+        "03:00", "04:00", "05:00",
+        "06:00", "07:00", "08:00",
+        "09:00", "10:00", "11:00",
+        "12:00", "13:00", "14:00",
+        "15:00", "16:00", "17:00",
+        "18:00", "19:00", "20:00",
+        "21:00", "22:00", "23:00"
+    ]
+    if day == "all":
+        day = [
+            "01", "02", "03", "04", "05", "06",
+            "07", "08", "09", "10", "11", "12",
+            "13", "14", "15", "16", "17", "18",
+            "19", "20", "21", "22", "23", "24",
+            "25", "26", "27", "28", "29", "30",
+            "31"
+        ]
+    if row["cds_month"] == "all":
+        month = [month]
+    else:
+        month = [row["cds_month"]]
+    return {
+        "variable": [var],
+        "product_type": [product_type],
+        "year": year,
+        "month": month,
+        "day":day,
+        "data_format": data_format,
+        "download_format": download_format,
+        "time":time
+    }
+def get_output_filename(row,dataset,year,month="01"):
+    
+    var=row["filename_variable"]
+    date=f"{year}{month}"
+    return f"{var}_{dataset}_{date}.nc"
+
+def main():
+    setup_logging()
+    dataset="reanalysis-era5-land"
+    variables_file_path = f"../../requests/{dataset}.csv"
+    download_files(dataset, variables_file_path, create_request, get_output_filename, request_frequency="monthly")
+
+if __name__ == "__main__":
+    main()
