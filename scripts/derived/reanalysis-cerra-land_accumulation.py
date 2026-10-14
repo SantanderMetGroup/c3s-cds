@@ -128,7 +128,8 @@ def accumulation(ds,var):
 
 
 if __name__ == "__main__":
-    setup_logging()
+    print("Starting reanalysis-cerra-land accumulation script")
+    setup_logging(force=True)
     dataset="reanalysis-cerra-land"
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)

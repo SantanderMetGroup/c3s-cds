@@ -5,4 +5,5 @@ insitu-gridded-observations-europe,observation,tn,minimum_temperature,1950,2025,
 insitu-gridded-observations-europe,observation,fg,wind_speed,1950,2025,ensemble_mean,0_1deg,33_0e,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/insitu-gridded-observations-europe.py,raw,daily,native,None,False
 insitu-gridded-observations-europe,observation,rr,precipitation_amount,1950,2025,ensemble_mean,0_1deg,33_0e,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/insitu-gridded-observations-europe.py,raw,daily,native,None,False
 insitu-gridded-observations-europe,observation,qq,surface_shortwave_downwelling_radiation,1950,2025,ensemble_mean,0_1deg,33_0e,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/insitu-gridded-observations-europe.py,raw,daily,native,None,False
+insitu-gridded-observations-europe,observation,pp,sea_level_pressure,1950,2025,ensemble_mean,0_1deg,33_0e,CDS,/lustre/gmeteo/WORK/DATA/C3S-CDS/CDS-Curated-Data/,scripts/download/insitu-gridded-observations-europe.py,raw,daily,native,None,False
 
