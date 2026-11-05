@@ -5,7 +5,7 @@ from dask.distributed import Client
 
 import sys
 sys.path.append('../utilities')
-from utils import  require_single_row, load_derived_dependencies,  raw_condition
+from utils import  require_single_row, load_derived_dependencies,  raw_condition,derived_condition
 from logging_utils import setup_logging
 from utils_derived_pipeline import process_derived
 from utils_dask_slurm import load_slurm_dask_config
@@ -31,14 +31,18 @@ logger.info(f"System parameters for Dask configuration: {PARAMS_SLURM}")
 #     },
 # =============================================================================
 VAR_CONFIG = {
-    "hurs": {
-        "func": operations.rh_from_thermofeel,
-        "cond": raw_condition,
-    },
     "huss": {
         "func": operations.sh_xclim,
         "cond": raw_condition,
     },
+    "hurs": {
+        "func": operations.rh_from_sh_xclim,
+        "cond": [   raw_condition,
+                    raw_condition,
+                    derived_condition,
+                ]
+    },
+
 }
 
 

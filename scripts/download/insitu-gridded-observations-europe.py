@@ -30,6 +30,7 @@ def create_request(row):
         "grid_resolution": grid_resolution,
         "period": "full_period",
         "version": version,
+        "licence_type": "restricted_research_licence",
     }
 
 def main():

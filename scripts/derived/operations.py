@@ -4,7 +4,7 @@ import xarray as xr
 import numpy as np
 import logging
 from thermofeel.thermofeel import calculate_relative_humidity_percent
-from xclim.indicators.convert import specific_humidity_from_dewpoint, mean_radiant_temperature, universal_thermal_climate_index
+from xclim.indicators.convert import specific_humidity_from_dewpoint, mean_radiant_temperature, universal_thermal_climate_index,relative_humidity
 
 logger = logging.getLogger(__name__)
 
@@ -107,9 +107,25 @@ def rh_from_thermofeel(ds_td: xr.Dataset, ds_t2: xr.Dataset) -> xr.Dataset:
 
     return rh_ds
 
+@requires_vars((0, "t2m"), (1, "ps"), (2, "huss"))
+def rh_from_sh_xclim(
+    t2m: xr.Dataset,
+    ps:  xr.Dataset,
+    huss:  xr.Dataset,
+    ) -> xr.Dataset:
+    """
+    Compute relative humidity from specific humidity, using tetens 30 and ice_thresh = 0ºC"
+    """
+    ds_index = relative_humidity(
+        tas=t2m["t2m"], ps=ps["ps"], huss=huss["huss"], method="tetens30", ice_thresh="0 °C",invalid_values="clip"
+    )
+    ds_hurs = ds_index.to_dataset(name="hurs")
+    return ds_hurs
+
+
 @requires_vars((0, "d2m"), (1, "ps"))
 def sh_xclim(tdps: xr.Dataset, ps: xr.Dataset) -> xr.Dataset:
-    huss = specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'], method="tetens30")
+    huss = specific_humidity_from_dewpoint(tdps=tdps['d2m'], ps=ps['ps'], method="tetens30", ice_thresh="0 °C")
     return huss.to_dataset()
 
 @requires_vars((0, "u10"), (1, "v10"))

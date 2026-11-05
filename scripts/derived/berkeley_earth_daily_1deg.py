@@ -182,8 +182,8 @@ def create_standard_dataset(ds, data, variable_name):
         },
         coords={
             "time": ds["time"],
-            "lat": ds["latitude"],
-            "lon": ds["longitude"],
+            "lat": ds["lat"],
+            "lon": ds["lon"],
         },
     )
 
@@ -265,7 +265,13 @@ def process_file(input_file, output_dir, variable_name):
 
     ds = xr.open_dataset(input_file)
 
+    rename_dict = {}
+    if "latitude" in ds.dims or "latitude" in ds.coords:
+        rename_dict["latitude"] = "lat"
 
+    if "longitude" in ds.dims or "longitude" in ds.coords:
+        rename_dict["longitude"] = "lon"
+    ds=ds.rename(rename_dict)
     try:
 
         # --------------------------------------------------------------

@@ -133,7 +133,7 @@ if __name__ == "__main__":
     dataset="reanalysis-cerra-land"
     variables_file_path = f"../../requests/{dataset}.csv"
     df_parameters = pd.read_csv(variables_file_path)
-    derived_variables = df_parameters[df_parameters['product_type'] == 'derived']['filename_variable']
+    derived_variables = df_parameters[(df_parameters['product_type'] == 'derived') & (df_parameters['derived_type'] == 'accumulation')]['filename_variable']
     derived_variables_list = derived_variables.tolist()
     logger.info(f"List of derived variables: {derived_variables_list}")
 

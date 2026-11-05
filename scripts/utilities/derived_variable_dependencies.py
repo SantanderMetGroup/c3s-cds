@@ -1,8 +1,9 @@
 
 VARIABLE_DEPENDENCIES = {
-    "hurs": ["d2m", "t2m"],   # relative humidity from dewpoint & temperature
     "sfcwind": ["u10", "v10"], # wind speed from u/v components
     "huss": ["d2m", "ps"],      # specific humidity from dewpoint & pressure
+    "hurs": ["t2m","ps","huss"],   # relative humidity from huss, ps and temperature
+
     "rsus": ["rsds", "rsns"],
     "rlus": ["rlds", "rlns"],
     "mrt": ["rsus", "rlus", "rsds", "rlds"],
